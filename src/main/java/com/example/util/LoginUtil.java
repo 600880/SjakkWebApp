@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpSession;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.sjakkapp.BrukerService;
-import com.example.sjakkapp.Bruker;
+import com.example.sjakkwebapp.Bruker;
+import com.example.sjakkwebapp.BrukerService;
 
 public class LoginUtil {
 	

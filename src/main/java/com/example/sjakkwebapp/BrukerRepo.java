@@ -1,4 +1,4 @@
-package com.example.sjakkapp;
+package com.example.sjakkwebapp;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

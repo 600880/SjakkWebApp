@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Future;
 
+import com.example.sjakkwebapp.*;
+
 //import javax.swing.JOptionPane;
 
 import brett.ChessBoard;
@@ -13,7 +15,6 @@ import brikke.Brikke;
 //import brikke.Bonde;
 import brikke.Farge;
 import util.Utils;
-import com.example.sjakkapp.*;
 
 public class Spiller {
 	
@@ -166,7 +167,7 @@ public class Spiller {
 		// EvalueringRunnable evaluerer hver brikke "i", og lagrer indeks til beste trekk i indeksTabell posisjon "i".
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 		for (int i = 0; i < spillerBrikker.size(); i++) {
-			Future<?> f = SjakkappApplication.traadsamling.submit(new EvalueringRunnable(i, parti, spillerBrikker.get(i), this));
+			Future<?> f = SjakkWebAppApplication.traadsamling.submit(new EvalueringRunnable(i, parti, spillerBrikker.get(i), this));
 			futures.add(f);
 		}
 		for (Future<?> f : futures) {

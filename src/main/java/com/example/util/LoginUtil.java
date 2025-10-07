@@ -14,8 +14,8 @@ public class LoginUtil {
 	
 	public static void loggInnBruker(HttpServletRequest request, String bruker) {
 		
+		loggUtBruker(request.getSession());
 		HttpSession session = request.getSession();
-		//loggUtBruker(session);
 		session.setAttribute("bruker", bruker);
 		session.setMaxInactiveInterval(60);
 		

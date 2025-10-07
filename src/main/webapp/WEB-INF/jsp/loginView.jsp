@@ -186,10 +186,19 @@ function switchTab(tabName) {
 
 // Fetch simulation result
 function runProgram() {
-    fetch('/spill', { method: 'GET' })
-        .then(response => response.text())
+    fetch('/spill')
+        .then(res => {
+            if (res.status === 401) {
+                // Not logged in → redirect
+                window.location.href = '/index';
+                return null;
+            }
+            return res.text();
+        })
         .then(data => {
-            document.getElementById('output').innerText = data;
+            if (data !== null) {
+                document.getElementById('output').innerText = data;
+            }
         })
         .catch(err => {
             document.getElementById('output').innerText = 'Error: ' + err;
@@ -198,9 +207,17 @@ function runProgram() {
 
 // Load user's saved games
 function loadArchive() {
-    fetch('/minePartier', { method: 'GET' })
-        .then(response => response.json())
+    fetch('/minePartier')
+        .then(res => {
+            if (res.status === 401) {
+                // Not logged in → redirect to login page
+                window.location.href = '/index';
+                return null;
+            }
+            return res.json();
+        })
         .then(data => {
+            if (!data) return; // redirected
             const tbody = document.getElementById('archive-list');
             tbody.innerHTML = '';
 

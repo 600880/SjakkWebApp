@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +44,9 @@ public class RegistrerController {
     }
 
     @GetMapping("/login")
-    public String innlogget() {
+    public String innlogget(HttpSession session) {
+    	if (!LoginUtil.erBrukerInnlogget(session))
+    		return "redirect:/index.html";
         return "loginView";
     }
     
@@ -77,7 +81,13 @@ public class RegistrerController {
     
     @ResponseBody
     @GetMapping("/spill")
-    public String sjakk(HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public ResponseEntity<String> sjakk(HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+
+    	
+        if (!LoginUtil.erBrukerInnlogget(session)) {
+            // Return 401 Unauthorized
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        }
     	
     	String spillerHvit = (String) session.getAttribute("bruker");
     	String spillerSvart = "admin@admin.no";
@@ -89,16 +99,21 @@ public class RegistrerController {
 
         p.leggTilParti(spillerHvit, spillerSvart, parti.getPNG());
 
-        return parti.getPNG();
+        return ResponseEntity.ok(parti.getPNG());
     }
     
-    @GetMapping("/minePartier")
     @ResponseBody
-    public List<Parti> minePartier(HttpSession session) {
+    @GetMapping("/minePartier")
+    public ResponseEntity<List<Parti>> minePartier(HttpSession session) {
+        
+        if (!LoginUtil.erBrukerInnlogget(session)) {
+            // Return 401 Unauthorized
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        
         String bruker = (String) session.getAttribute("bruker");
-        if (bruker == null) return List.of(); // empty list if not logged in
         List<Parti> partier = p.finnPartierForBruker(bruker);
-        return partier;
+        return ResponseEntity.ok(partier);
     }
 
 }

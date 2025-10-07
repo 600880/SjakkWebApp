@@ -1,4 +1,4 @@
-package com.example.sjakkapp;
+package com.example.sjakkwebapp;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;

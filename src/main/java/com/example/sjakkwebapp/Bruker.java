@@ -1,4 +1,4 @@
-package com.example.sjakkapp;
+package com.example.sjakkwebapp;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

@@ -138,7 +138,8 @@ td {
 
 <header>
     <h1>Chess Simulator</h1>
-    <button onclick="logout()">Log Out</button>
+    <form id="logoutForm" action="/logout" method="post" style="display:none;"></form>
+	<button onclick="document.getElementById('logoutForm').submit()">Log Out</button>
 </header>
 
 <div class="tabs">
@@ -170,10 +171,6 @@ td {
 </div>
 
 <script>
-function logout() {
-    window.location.href = "login.html";
-}
-
 // Tab switching
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');

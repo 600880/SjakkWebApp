@@ -1,4 +1,4 @@
-package com.example.sjakkapp;
+package com.example.sjakkwebapp;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -55,6 +55,12 @@ public class RegistrerController {
 			return "redirect:login";
 		return "redirect:index";
 
+	}
+	
+	@PostMapping("/logout")
+	public String loggUt(HttpSession session) {
+		LoginUtil.loggUtBruker(session);
+		return "redirect:index";
 	}
 
     @PostMapping("/registrer")

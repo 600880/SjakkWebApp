@@ -24,15 +24,20 @@ public class AutentiseringController {
 	@Autowired 
     private BrukerService s;
 	
-    @GetMapping("/index")
+	@GetMapping("/")
     public String index() {
-    	return "redirect:/index.html";
+    	return "indexView";
+    }
+	
+    @GetMapping("/index")
+    public String hjem() {
+    	return "indexView";
     }
 
     @GetMapping("/login")
     public String innlogget(HttpSession session) {
     	if (!LoginUtil.erBrukerInnlogget(session))
-    		return "redirect:/index.html";
+    		return "indexView";
         return "loginView";
     }
     
@@ -55,17 +60,19 @@ public class AutentiseringController {
 	
     @GetMapping("/registrer")
     public String registrer() {
-        return "redirect:/registrer.html";
+        return "registrerView";
     }
 
     @PostMapping("/registrer")
-    public String registrer(@RequestParam String epost, String passord, String passordRepetert, RedirectAttributes ra)
+    public String registrer(@RequestParam String epost, String passord, String passordRepetert,
+    		HttpServletRequest request, RedirectAttributes ra)
 					throws UnsupportedEncodingException, NoSuchAlgorithmException {
     	
-		if (!ValidateUtil.validering(epost, passord, passordRepetert, ra))
+		if (!ValidateUtil.validering(epost, passord, passordRepetert, ra, s))
 			return "redirect:registrer";
     	
     	s.leggTilBruker(epost, passord);
+    	LoginUtil.loggInnBruker(request, epost);
     	
         return "redirect:login";
     }

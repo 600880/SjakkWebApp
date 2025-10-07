@@ -17,7 +17,7 @@ public class LoginUtil {
 		loggUtBruker(request.getSession());
 		HttpSession session = request.getSession();
 		session.setAttribute("bruker", bruker);
-		session.setMaxInactiveInterval(60);
+		session.setMaxInactiveInterval(600);
 		
 	}
 	
@@ -48,7 +48,7 @@ public class LoginUtil {
 			return false;
 		}
 		
-		LoginUtil.loggInnBruker(request, bruker);
+		loggInnBruker(request, bruker);
 		return true;
 		
 	}

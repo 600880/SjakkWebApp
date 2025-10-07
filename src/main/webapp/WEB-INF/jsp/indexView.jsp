@@ -1,9 +1,11 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Site - Register</title>
+    <title>Chess Site - Login</title>
     <style>
         /* General page styling */
         body {
@@ -16,13 +18,13 @@
             margin: 0;
         }
 
-        /* Registration container */
-        .register-container {
+        /* Login container */
+        .login-container {
             background-color: #fff;
             padding: 40px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            width: 350px;
+            width: 300px;
             text-align: center;
         }
 
@@ -32,7 +34,7 @@
         }
 
         /* Input fields */
-        input[type="email"], input[type="password"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px 10px;
             margin: 8px 0;
@@ -58,8 +60,8 @@
             background-color: #45a049;
         }
 
-        /* Optional: link for login */
-        .login-link {
+        /* Optional: link for registration */
+        .register-link {
             margin-top: 15px;
             display: block;
             font-size: 14px;
@@ -67,31 +69,29 @@
             text-decoration: none;
         }
 
-        .login-link:hover {
+        .register-link:hover {
             text-decoration: underline;
         }
-
-        /* Error message styling */
+        
+                /* Error message styling */
         .error-message {
             color: red;
             font-size: 14px;
-            display: none;
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="register-container">
-    <h1>Create Your Account</h1>
-    <form id="registerForm" action="/registrer" method="post">
-        <input type="email" name="epost" placeholder="Email" required>
+<div class="login-container">
+    <h1>Chess Site Login</h1>
+    <form id="loginForm" action="/login" method="post">
+        <input type="text"" name="bruker" placeholder="Username" required>
         <input type="password" name="passord" placeholder="Password" required>
-        <input type="password" name="passordRepetert" placeholder="Confirm Password" required>
-        <button type="submit">Register</button>
-        <div id="errorMessage" class="error-message">Passwords do not match.</div>
+        <button type="submit">Log In</button>
+        <div id="errorMessage" class="error-message">${redirectMessage}</div>
     </form>
-    <a href="index.html" class="login-link">Already have an account? Log in</a>
+    <a href="registrer.html" class="register-link">Don't have an account? Register</a>
 </div>
 
 </body>

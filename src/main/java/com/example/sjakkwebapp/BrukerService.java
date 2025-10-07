@@ -14,7 +14,7 @@ public class BrukerService {
 	@Autowired
 	private BrukerRepo brukerRepo;
 	
-	public void leggTilNyBruker (String bruker, String passord)
+	public void leggTilBruker (String bruker, String passord)
 			throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		Bruker b = new Bruker();
@@ -29,7 +29,7 @@ public class BrukerService {
 	}
 	
 	public Bruker finnBruker(String bruker) {
-	    return brukerRepo.findById(bruker).orElse(null);
+	    return brukerRepo.findByBruker(bruker);
 	}
 
 }

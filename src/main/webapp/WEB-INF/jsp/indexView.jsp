@@ -1,5 +1,4 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,7 +90,7 @@
         <button type="submit">Log In</button>
         <div id="errorMessage" class="error-message">${redirectMessage}</div>
     </form>
-    <a href="registrer.html" class="register-link">Don't have an account? Register</a>
+    <a href="/registrer" class="register-link">Don't have an account? Register</a>
 </div>
 
 </body>

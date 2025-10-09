@@ -1,4 +1,4 @@
-package com.example.util;
+package com.example.sjakkwebapp.util;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;

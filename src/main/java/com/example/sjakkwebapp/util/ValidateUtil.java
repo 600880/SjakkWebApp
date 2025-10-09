@@ -1,8 +1,8 @@
-package com.example.util;
+package com.example.sjakkwebapp.util;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.sjakkwebapp.BrukerService;
+import com.example.sjakkwebapp.service.BrukerService;
 
 public class ValidateUtil {
 	

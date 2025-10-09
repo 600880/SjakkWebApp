@@ -1,4 +1,4 @@
-package com.example.sjakkwebapp;
+package com.example.sjakkwebapp.service;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -6,7 +6,9 @@ import java.security.NoSuchAlgorithmException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.util.PasswordUtil;
+import com.example.sjakkwebapp.repository.BrukerRepo;
+import com.example.sjakkwebapp.model.Bruker;
+import com.example.sjakkwebapp.util.PasswordUtil;
 
 @Service
 public class BrukerService {

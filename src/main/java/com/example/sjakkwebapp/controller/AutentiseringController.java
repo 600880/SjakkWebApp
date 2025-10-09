@@ -1,4 +1,4 @@
-package com.example.sjakkwebapp;
+package com.example.sjakkwebapp.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.util.ValidateUtil;
-import com.example.util.LoginUtil;
+import com.example.sjakkwebapp.util.ValidateUtil;
+import com.example.sjakkwebapp.service.BrukerService;
+import com.example.sjakkwebapp.util.LoginUtil;
 
 
 @Controller

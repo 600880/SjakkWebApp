@@ -1,4 +1,4 @@
-package com.example.util;
+package com.example.sjakkwebapp.util;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpSession;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.sjakkwebapp.Bruker;
-import com.example.sjakkwebapp.BrukerService;
+import com.example.sjakkwebapp.model.Bruker;
+import com.example.sjakkwebapp.service.BrukerService;
 
 public class LoginUtil {
 	

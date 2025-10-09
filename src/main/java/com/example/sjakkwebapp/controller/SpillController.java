@@ -1,4 +1,4 @@
-package com.example.sjakkwebapp;
+package com.example.sjakkwebapp.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -11,7 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.example.util.LoginUtil;
+import com.example.sjakkwebapp.model.Parti;
+import com.example.sjakkwebapp.service.PartiService;
+import com.example.sjakkwebapp.util.LoginUtil;
 
 import brikke.Farge;
 import jakarta.servlet.http.HttpSession;

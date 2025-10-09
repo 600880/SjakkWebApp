@@ -1,4 +1,4 @@
-package com.example.sjakkwebapp;
+package com.example.sjakkwebapp.service;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.example.sjakkwebapp.repository.PartiRepo;
+import com.example.sjakkwebapp.model.Parti;
 
 @Service
 public class PartiService {

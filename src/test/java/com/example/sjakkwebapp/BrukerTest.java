@@ -19,10 +19,12 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.util.*;
+import com.example.sjakkwebapp.repository.BrukerRepo;
+import com.example.sjakkwebapp.service.BrukerService;
+import com.example.sjakkwebapp.util.*;
+import com.example.sjakkwebapp.model.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc

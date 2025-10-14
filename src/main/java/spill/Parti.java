@@ -15,6 +15,8 @@ import brikke.Taarn;
 import brikke.Farge;
 import brikke.Hest;
 
+import com.example.sjakkwebapp.controller.SpillController;
+
 public class Parti {
 	
 	private final Brett brett = new Brett();
@@ -168,7 +170,11 @@ public class Parti {
 			
 			leggTilPNG(trekk.toPGN());
 			//chessBoard.repaint();
-
+			String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
+			SpillController.makeAIMove(trekkStr);
+			if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove("h1-f1");
+			else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove("a1-d1");
+			
 			for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
 			for (Brikke b : brikkerSvart) b.finnLovligeTrekk();
 			if (partiFerdig(Farge.SVART)) break;
@@ -177,6 +183,10 @@ public class Parti {
 			
 			leggTilPNG(trekk.toPGN());
 			//chessBoard.repaint();
+			trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
+			SpillController.makeAIMove(trekkStr);
+			if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove("h8-f8");
+			else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove("a8-d8");
 			
 			System.out.print(".");
 			i++;

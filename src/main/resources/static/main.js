@@ -14,6 +14,7 @@ function switchTab(tabName) {
 
 // ===== SIMULATION =====
 function runProgram() {
+	board.position('start');
     fetch('/spill')
         .then(res => {
             if (res.status === 401) {
@@ -84,33 +85,15 @@ function initChessBoard() {
     if (!boardElement) return;
 
     board = Chessboard('board', {
-        draggable: true,
+        draggable: false,
         position: 'start',
+        pieceTheme: '/img/chesspieces/wikipedia/{piece}.png',
         onDrop: handleMove
     });
 }
 
-function handleMove(source, target) {
-    const move = { from: source, to: target };
-
-    fetch('/spill/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(move)
-    })
-        .then(response => {
-            if (!response.ok) throw new Error('Move failed');
-            return response.text();
-        })
-        .then(newFen => {
-            board.position(newFen);
-        })
-        .catch(err => {
-            console.error('Error sending move:', err);
-            board.position(board.fen());
-        });
-
-    return 'snapback';
+function handleMove(move) {
+    //board.move(move);
 }
 
 // ===== INITIALIZE =====
@@ -119,4 +102,13 @@ window.addEventListener('load', () => {
     if (document.getElementById('board')) {
         initChessBoard();
     }
+});
+
+const evtSource = new EventSource("/moves/stream");
+evtSource.onopen = () => console.log("SSE connected");
+evtSource.onerror = (err) => console.error("SSE error:", err);
+
+// Listen for named event "move"
+evtSource.addEventListener("move", (event) => {
+    board.move(event.data); // e.g., "e2-e4"
 });

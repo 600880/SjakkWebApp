@@ -104,6 +104,8 @@ window.addEventListener('load', () => {
     }
 });
 
+
+// ===== SSE =====
 const evtSource = new EventSource("/moves/stream");
 evtSource.onopen = () => console.log("SSE connected");
 evtSource.onerror = (err) => console.error("SSE error:", err);

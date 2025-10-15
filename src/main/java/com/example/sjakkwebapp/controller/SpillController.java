@@ -85,7 +85,7 @@ public class SpillController {
     }
 
     // Push a move to all connected clients
-    @PostMapping("/moves/push")
+    /*@PostMapping("/moves/push")
     public ResponseEntity<String> pushMove(@RequestBody String move) {
         for (SseEmitter emitter : clients) {
             try {
@@ -95,7 +95,7 @@ public class SpillController {
             }
         }
         return ResponseEntity.ok("Move pushed: " + move);
-    }
+    }*/
     
     public static void makeAIMove(String move) {
         for (SseEmitter emitter : clients) {

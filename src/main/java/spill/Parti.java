@@ -149,7 +149,6 @@ public class Parti {
 	 * Nye trekk spilles helt til en av betingelsene for at spillet er ferdig er oppfylt.
 	 * @param hvit spiller
 	 * @param svart spiller
-	 * @return antall trekk
 	 */
 	public void spill(Spiller hvit, Spiller svart) {
 		
@@ -170,7 +169,10 @@ public class Parti {
 	}
 
 	/**
-	 * spiller et trekk.
+	 * Spiller et trekk.
+	 * @param spiller
+	 * @param farge
+	 * @return false hvis parti ferdig, true ellers
 	 */
 	public boolean spillTrekk(Spiller spiller, Farge farge) {
 		
@@ -200,7 +202,7 @@ public class Parti {
 	}
 	
 	/**
-	 * Nytt trekk utf�res, og aktuelle ruter og brikker f�r nye verdier. 
+	 * Nytt trekk opprettes, og aktuelle ruter og brikker f�r nye verdier. 
 	 * @param trekk
 	 */
 	public void nyttTrekk(Trekk trekk) {

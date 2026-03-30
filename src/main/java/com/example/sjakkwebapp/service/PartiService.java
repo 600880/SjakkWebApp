@@ -30,7 +30,7 @@ public class PartiService {
 	}
 	
     public List<Parti> finnPartierForBruker(String bruker) {
-        return partiRepo.findByHvitOrSvart(bruker, bruker);
+        return partiRepo.findByHvitOrSvartOrderByIdDesc(bruker, bruker);
     }
     
     public Optional<Parti> finnPartiById(int id) {

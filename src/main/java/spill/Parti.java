@@ -28,6 +28,8 @@ public class Parti {
 	private final static List<String> stillinger = new ArrayList<String>();
 	private final static List<String> stillingerRepetert = new ArrayList<String>();
 	private static String PNG;
+	private int trekknummer;
+
 
 	/**
 	 * Brikker opprettes og plasseres p� brettet.
@@ -142,59 +144,59 @@ public class Parti {
 		brett.fjernBrikker();
 		
 	}
-	
+
 	/**
-	 * Nytt trekk spilles helt til en av betingelsene for at spillet er ferdig er oppfylt.
+	 * Nye trekk spilles helt til en av betingelsene for at spillet er ferdig er oppfylt.
 	 * @param hvit spiller
 	 * @param svart spiller
 	 * @return antall trekk
 	 */
-	public int spill(Spiller hvit, Spiller svart) {
+	public void spill(Spiller hvit, Spiller svart) {
 		
 		stillinger.clear();
 		stillingerRepetert.clear();
-		PNG = "";
-		
-        //ChessBoard chessBoard = new ChessBoard(this, hvit, svart);
-		
-		int i = 1;
-		while (true) {
-			
-			leggTilPNG(i + ".");
-			
-			for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
-			for (Brikke b : brikkerSvart) b.finnLovligeTrekk();
-			if (partiFerdig(Farge.HVIT)) break;
+		PNG = "";		
+		trekknummer = 1;
 
-			Trekk trekk = hvit.trekk();
-			
-			leggTilPNG(trekk.toPGN());
+		//ChessBoard chessBoard = new ChessBoard(this, hvit, svart);
+
+		while (true) {
+			if (!spillTrekk(hvit, Farge.HVIT)) break;
 			//chessBoard.repaint();
-			String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
-			SpillController.makeAIMove(trekkStr);
-			if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove("h1-f1");
-			else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove("a1-d1");
-			
-			for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
-			for (Brikke b : brikkerSvart) b.finnLovligeTrekk();
-			if (partiFerdig(Farge.SVART)) break;
-			
-			trekk = svart.trekk();
-			
-			leggTilPNG(trekk.toPGN());
+			if (!spillTrekk(svart, Farge.SVART)) break;
 			//chessBoard.repaint();
-			trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
-			SpillController.makeAIMove(trekkStr);
-			if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove("h8-f8");
-			else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove("a8-d8");
-			
-			System.out.print(".");
-			i++;
-			
 		}
-		System.out.println();
-		return i;
 		
+	}
+
+	/**
+	 * spiller et trekk.
+	 */
+	public boolean spillTrekk(Spiller spiller, Farge farge) {
+		
+		for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
+		for (Brikke b : brikkerSvart) b.finnLovligeTrekk();
+		if (partiFerdig(farge)) return false;
+
+		if (farge == Farge.HVIT) {
+			leggTilPNG(trekknummer++ + ".");
+		}
+
+		Trekk trekk = spiller.trekk();
+		leggTilPNG(trekk.toPGN());
+
+		String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
+		SpillController.makeAIMove(trekkStr);
+
+		if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove(
+			farge == Farge.HVIT ? "h1-f1" : "h8-f8"
+		);
+		else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove(
+			farge == Farge.HVIT ? "a1-d1" : "a8-d8"
+		);
+
+		return true;
+			
 	}
 	
 	/**

@@ -3,6 +3,7 @@ package com.example.sjakkwebapp.service;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class PartiService {
 	
     public List<Parti> finnPartierForBruker(String bruker) {
         return partiRepo.findByHvitOrSvart(bruker, bruker);
+    }
+    
+    public Optional<Parti> finnPartiById(int id) {
+        return partiRepo.findById(id);
     }
 
 }

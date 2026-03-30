@@ -29,17 +29,21 @@
 </div>
 
 <div id="play" class="tab-content">
-    <button class="simulate-button" onclick="runProgram()">Simulate</button>
-    <div id="output"></div>
-    <div id="board"></div>
+    <div class="play-section">
+        <div id="board"></div>
+        <div class="button-group">
+            <button onclick="runProgram()">Simulate</button>
+        </div>
+        <div id="output">Click Simulate to start</div>
+    </div>
 </div>
 
 <div id="archive" class="tab-content" style="display:none;">
-    <h3>Your saved games:</h3>
-    
-    <!-- Game List View -->
-    <div id="gameListView">
-        <div id="archive-list-wrapper">
+    <div class="archive-section">
+        <h3>Saved Games</h3>
+        
+        <!-- Game List View -->
+        <div id="gameListView">
             <table>
                 <thead>
                     <tr>
@@ -51,32 +55,32 @@
                 <tbody id="archive-list"></tbody>
             </table>
         </div>
-    </div>
-    
-    <!-- Game Replay View -->
-    <div id="replayView" style="display:none;">
-        <button onclick="backToGameList()">← Back to Games</button>
-        <h3><span id="replayPlayers"></span></h3>
         
-        <div style="display:flex; gap:30px; align-items:flex-start;">
-            <!-- Board on the left -->
-            <div>
-                <div id="replayBoard"></div>
-                <div style="margin-top:15px;">
-                    <button onclick="firstMove()">⏮ Start</button>
-                    <button onclick="prevMove()">◀ Previous</button>
-                    <button onclick="nextMove()">Next ▶</button>
-                    <button onclick="lastMove()">End ⏭</button>
-                </div>
-                <div style="margin-top:10px; font-size:12px; color:#666;">
-                    <strong>Move: </strong><span id="currentMoveNum">0/0</span>
-                </div>
+        <!-- Game Replay View -->
+        <div id="replayView" style="display:none;">
+            <div class="replay-header">
+                <button onclick="backToGameList()">← Back</button>
+                <h3><span id="replayPlayers"></span></h3>
             </div>
             
-            <!-- PGN on the right -->
-            <div style="flex:1; display:flex; flex-direction:column;">
-                <div id="pgnDisplay" style="font-family:monospace; line-height:1.6; padding:10px; background:#f5f5f5; border-radius:4px; max-width:400px; max-height:450px; overflow-y:auto; overflow-x:hidden; border:1px solid #ccc; flex:1;"></div>
-                <div id="errorMsg" style="color:red; margin-top:10px;"></div>
+            <div class="replay-layout">
+                <!-- Board on the left -->
+                <div class="board-container">
+                    <div id="replayBoard"></div>
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="firstMove()">⏮</button>
+                        <button class="control-btn" onclick="prevMove()">◀</button>
+                        <button class="control-btn" onclick="nextMove()">▶</button>
+                        <button class="control-btn" onclick="lastMove()">⏭</button>
+                    </div>
+                    <div class="move-info">Move: <span id="currentMoveNum">0/0</span></div>
+                </div>
+                
+                <!-- PGN on the right -->
+                <div class="pgn-container">
+                    <div id="pgnDisplay"></div>
+                    <div id="errorMsg"></div>
+                </div>
             </div>
         </div>
     </div>

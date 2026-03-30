@@ -8,17 +8,17 @@
 	<title>Chess Site - Login</title>
 </head>
 <body>
-
-<div class="login-container">
-    <h1>Chess Site Login</h1>
-    <form id="loginForm" action="/login" method="post">
-        <input type="text" name="bruker" placeholder="Username" required>
-        <input type="password" name="passord" placeholder="Password" required>
-        <button type="submit">Log In</button>
-        <div id="errorMessage" class="error-message">${redirectMessage}</div>
-    </form>
-    <a href="/registrer" class="register-link">Don't have an account? Register</a>
-</div>
-
+	<div class="login-container">
+	    <h1>Login</h1>
+	    <form id="loginForm" action="/login" method="post">
+	        <input type="text" name="bruker" placeholder="Username" required>
+	        <input type="password" name="passord" placeholder="Password" required>
+	        <button type="submit">Sign In</button>
+	        <div id="errorMessage" class="error-message">${redirectMessage}</div>
+	    </form>
+	    <div class="login-link">
+	    	<a href="/registrer">Create Account</a>
+	    </div>
+	</div>
 </body>
 </html>

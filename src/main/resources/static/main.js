@@ -1,83 +1,146 @@
-// ===== TAB SWITCHING =====
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
-    const target = document.getElementById(tabName);
-    if (target) target.style.display = 'block';
+/* ========================================
+   CHESS SIMULATOR - MAIN APPLICATION
+   ======================================== */
 
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    const activeTab = Array.from(document.querySelectorAll('.tab'))
-        .find(t => t.getAttribute('onclick')?.includes(tabName));
-    if (activeTab) activeTab.classList.add('active');
-
-    if (tabName === 'archive') loadArchive();
-}
-
-// ===== SIMULATION =====
-function runProgram() {
-	board.position('start');
-    fetch('/spill')
-        .then(res => {
-            if (res.status === 401) {
-                window.location.href = '/index';
-                return null;
-            }
-            return res.text();
-        })
-        .then(data => {
-            if (data !== null) {
-                const output = document.getElementById('output');
-                if (output) output.innerText = data;
-            }
-        })
-        .catch(err => {
-            const output = document.getElementById('output');
-            if (output) output.innerText = 'Error: ' + err;
-        });
-}
-
-// ===== ARCHIVE & REPLAY =====
+/* ===== STATE VARIABLES ===== */
+let board = null;
 let currentGame = null;
 let replayChess = null;
 let replayBoard = null;
 let currentMoveIndex = 0;
 let moves = [];
+let evtSource = null;
+
+
+/* ===== UI / TAB MANAGEMENT ===== */
+
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+
+    // Show selected tab
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
+    }
+
+    // Update active tab styling
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    const activeTabElement = Array.from(document.querySelectorAll('.tab'))
+        .find(tab => tab.getAttribute('onclick')?.includes(tabName));
+    
+    if (activeTabElement) {
+        activeTabElement.classList.add('active');
+    }
+
+    // Load archive if switching to archive tab
+    if (tabName === 'archive') {
+        loadArchive();
+    }
+}
+
+
+/* ===== PLAY / SIMULATION ===== */
+
+function runProgram() {
+    // Reset board to starting position
+    if (board) {
+        board.position('start');
+    }
+
+    // Fetch simulation result from server
+    fetch('/spill')
+        .then(handleSimulationResponse)
+        .then(displaySimulationOutput)
+        .catch(displaySimulationError);
+}
+
+function handleSimulationResponse(res) {
+    // Check for unauthorized access
+    if (res.status === 401) {
+        window.location.href = '/index';
+        return null;
+    }
+    return res.text();
+}
+
+function displaySimulationOutput(data) {
+    if (data === null) return;
+    
+    const output = document.getElementById('output');
+    if (output) {
+        output.innerText = data;
+    }
+}
+
+function displaySimulationError(err) {
+    const output = document.getElementById('output');
+    if (output) {
+        output.innerText = 'Error: ' + err;
+    }
+    console.error('Simulation error:', err);
+}
+
+
+/* ===== ARCHIVE / GAME LIST ===== */
 
 function loadArchive() {
     fetch('/minePartier')
-        .then(res => {
-            if (res.status === 401) {
-                window.location.href = '/index';
-                return null;
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (!data) return;
-            const tbody = document.getElementById('archive-list');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">No saved games.</td></tr>';
-            } else {
-                data.forEach(game => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${game.hvit}</td>
-                        <td>${game.svart}</td>
-                        <td><button onclick="loadGameReplay(${game.id})">Replay</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-        })
-        .catch(err => {
-            console.error('Error fetching archive:', err);
-            const tbody = document.getElementById('archive-list');
-            if (tbody)
-                tbody.innerHTML = '<tr><td colspan="3">Error loading archive</td></tr>';
-        });
+        .then(handleArchiveResponse)
+        .then(populateGameList)
+        .catch(handleArchiveError);
 }
+
+function handleArchiveResponse(res) {
+    // Check for unauthorized access
+    if (res.status === 401) {
+        window.location.href = '/index';
+        return null;
+    }
+    return res.json();
+}
+
+function populateGameList(games) {
+    if (!games) return;
+
+    const tbody = document.getElementById('archive-list');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (games.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">No saved games.</td></tr>';
+    } else {
+        // Sort games newest first
+        games.sort((a, b) => Number(b.id) - Number(a.id));
+
+        games.forEach(game => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${game.hvit}</td>
+                <td>${game.svart}</td>
+                <td><button class="replay-btn" onclick="loadGameReplay(${game.id})">Replay</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+}
+
+function handleArchiveError(err) {
+    console.error('Error loading archive:', err);
+    const tbody = document.getElementById('archive-list');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="3">Error loading archive</td></tr>';
+    }
+}
+
+
+/* ===== REPLAY / GAME VIEWER ===== */
 
 function loadGameReplay(gameId) {
     fetch(`/partier/${gameId}`)
@@ -87,20 +150,7 @@ function loadGameReplay(gameId) {
         })
         .then(game => {
             currentGame = game;
-            document.getElementById('gameListView').style.display = 'none';
-            document.getElementById('replayView').style.display = 'block';
-            
-            // Initialize board first
-            initReplayBoard();
-            
-            // Then parse and display the game
-            parsePGN(game.pgn);
-            document.getElementById('replayPlayers').textContent = `${game.hvit} vs ${game.svart}`;
-            
-            // Use setTimeout to ensure DOM is ready
-            setTimeout(() => {
-                firstMove();
-            }, 100);
+            showReplayView(game);
         })
         .catch(err => {
             console.error('Error loading game:', err);
@@ -108,152 +158,33 @@ function loadGameReplay(gameId) {
         });
 }
 
+function showReplayView(game) {
+    // Switch views
+    document.getElementById('gameListView').style.display = 'none';
+    document.getElementById('replayView').style.display = 'block';
+
+    // Initialize board
+    initReplayBoard();
+
+    // Parse moves from PGN
+    parsePGN(game.pgn);
+
+    // Display player names
+    document.getElementById('replayPlayers').textContent = `${game.hvit} vs ${game.svart}`;
+
+    // Wait for DOM to be ready before updating
+    setTimeout(() => {
+        firstMove();
+    }, 100);
+}
+
 function backToGameList() {
     document.getElementById('replayView').style.display = 'none';
     document.getElementById('gameListView').style.display = 'block';
 }
 
-function initReplayBoard() {
-    const replayBoardEl = document.getElementById('replayBoard');
-    if (!replayBoardEl) {
-        console.error('replayBoard element not found');
-        return;
-    }
-    
-    replayChess = new Chess();
-    
-    // Ensure element has proper size before creating board
-    replayBoardEl.style.width = '400px';
-    replayBoardEl.style.height = '400px';
-    
-    try {
-        replayBoard = Chessboard('replayBoard', {
-            draggable: false,
-            position: 'start',
-            pieceTheme: '/img/chesspieces/wikipedia/{piece}.png'
-        });
-    } catch (e) {
-        console.error('Failed to initialize replay board:', e);
-    }
-}
 
-function parsePGN(pgn) {
-    moves = [];
-    if (!pgn) return;
-    
-    // Split PGN by spaces
-    const tokens = pgn.trim().split(/\s+/);
-    for (let token of tokens) {
-        // Skip move numbers (end with ".")
-        if (token.endsWith('.')) {
-            continue;
-        }
-        // Stop when we hit game result (starts with digit but doesn't end with ".", like "1/2" or "1-0")
-        if (/^\d/.test(token) && !token.endsWith('.')) {
-            break;
-        }
-        if (token !== '') {
-            moves.push(token);
-        }
-    }
-}
-
-function updateReplayBoard() {
-    if (!replayChess || !replayBoard) {
-        console.error('replayChess or replayBoard not initialized');
-        return;
-    }
-    
-    replayChess.reset();
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = '';
-    
-    // Replay moves up to currentMoveIndex
-    for (let i = 0; i < currentMoveIndex && i < moves.length; i++) {
-        try {
-            const moveNotation = moves[i].trim();
-            
-            // Try sloppy parsing first (most forgiving)
-            let moveObj = replayChess.move(moveNotation, { sloppy: true });
-            
-            // If it fails and looks like piece notation (Kg2, Nf3, etc), try extracting just the destination
-            if (!moveObj && /^[KQRBN][a-h][1-8]$/.test(moveNotation)) {
-                const destination = moveNotation.substring(1); // "Kg2" → "g2"
-                console.log('Move ' + (i+1) + ': First attempt failed with "' + moveNotation + '", trying coordinate "' + destination + '"');
-                moveObj = replayChess.move(destination, { sloppy: true });
-                
-                // If still failing, try as a capture
-                if (!moveObj) {
-                    const captureMove = moveNotation[0] + 'x' + destination; // "Kg7" → "Kxg7"
-                    console.log('Move ' + (i+1) + ': Coordinate failed, trying capture "' + captureMove + '"');
-                    moveObj = replayChess.move(captureMove, { sloppy: true });
-                }
-            }
-            
-            if (moveObj) {
-                console.log('Move ' + (i+1) + ': ' + moveNotation + ' → ' + moveObj.san);
-            } else {
-                console.error('Failed to parse move ' + (i+1) + ': ' + moveNotation);
-                console.log('Valid moves at this position:', replayChess.moves({ verbose: true }).map(m => m.san).join(', '));
-                errorMsg.textContent = 'Error at move ' + (i+1) + ': Invalid move notation "' + moves[i] + '"';
-                break;
-            }
-        } catch (e) {
-            console.error('Exception applying move ' + (i+1) + ' (' + moves[i] + '):', e);
-            errorMsg.textContent = 'Error at move ' + (i+1) + ': ' + e.message;
-            break;
-        }
-    }
-    
-    // Update board position
-    replayBoard.position(replayChess.fen());
-    
-    // Update display
-    const moveNum = currentMoveIndex;
-    document.getElementById('currentMoveNum').textContent = `${moveNum}/${moves.length}`;
-    
-    // Format PGN with move numbers and two moves per line, clickable
-    let pgnHtml = '';
-    for (let i = 0; i < moves.length; i += 2) {
-        const moveNumber = Math.floor(i / 2) + 1;
-        const whiteMove = moves[i];
-        const blackMove = moves[i + 1];
-        
-        let whiteStyle = 'cursor:pointer; color:black;';
-        let blackStyle = 'cursor:pointer; color:black;';
-        
-        // Color code based on current position
-        if (i < currentMoveIndex - 1) {
-            whiteStyle += ' color:green;';
-        } else if (i === currentMoveIndex - 1) {
-            whiteStyle += ' color:red; font-weight:bold;';
-        } else {
-            whiteStyle += ' color:gray;';
-        }
-        
-        if (blackMove) {
-            if (i + 1 < currentMoveIndex - 1) {
-                blackStyle += ' color:green;';
-            } else if (i + 1 === currentMoveIndex - 1) {
-                blackStyle += ' color:red; font-weight:bold;';
-            } else {
-                blackStyle += ' color:gray;';
-            }
-        }
-        
-        pgnHtml += '<div style="margin-bottom:5px;">';
-        pgnHtml += '<span style="font-weight:bold; margin-right:5px;">' + moveNumber + '.</span>';
-        pgnHtml += '<span style="' + whiteStyle + '" onclick="jumpToMove(' + (i+1) + ')">' + whiteMove + '</span>';
-        
-        if (blackMove) {
-            pgnHtml += ' <span style="' + blackStyle + '" onclick="jumpToMove(' + (i+2) + ')">' + blackMove + '</span>';
-        }
-        
-        pgnHtml += '</div>';
-    }
-    
-    document.getElementById('pgnDisplay').innerHTML = pgnHtml;
-}
+/* ===== REPLAY CONTROLS ===== */
 
 function firstMove() {
     currentMoveIndex = 0;
@@ -285,43 +216,227 @@ function jumpToMove(moveIndex) {
 }
 
 
-let board;
+/* ===== PGN PARSING & BOARD UPDATE ===== */
 
-function initChessBoard() {
-    if (typeof Chessboard === 'undefined') {
-        console.error('Chessboard.js not loaded.');
+function parsePGN(pgn) {
+    moves = [];
+    if (!pgn) return;
+
+    // Split PGN into tokens
+    const tokens = pgn.trim().split(/\s+/);
+
+    for (let token of tokens) {
+        // Skip move numbers (e.g., "1.", "2.")
+        if (token.endsWith('.')) {
+            continue;
+        }
+
+        // Stop at game result (e.g., "1-0", "1/2")
+        if (/^\d/.test(token) && !token.endsWith('.')) {
+            break;
+        }
+
+        if (token !== '') {
+            moves.push(token);
+        }
+    }
+}
+
+function updateReplayBoard() {
+    if (!replayChess || !replayBoard) {
+        console.error('Replay board not initialized');
         return;
     }
+
+    // Reset board
+    replayChess.reset();
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = '';
+
+    // Apply moves up to current index
+    for (let i = 0; i < currentMoveIndex && i < moves.length; i++) {
+        const moveResult = applyMove(i);
+        
+        if (!moveResult.success) {
+            errorMsg.textContent = moveResult.error;
+            break;
+        }
+    }
+
+    // Update board display
+    replayBoard.position(replayChess.fen());
+
+    // Update move counter
+    updateMoveCounter();
+
+    // Update PGN display
+    renderPGNDisplay();
+}
+
+function applyMove(moveIndex) {
+    const moveNotation = moves[moveIndex].trim();
+
+    try {
+        // Try parsing with sloppy mode (most lenient)
+        let moveObj = replayChess.move(moveNotation, { sloppy: true });
+
+        // If failed, try alternate formats
+        if (!moveObj) {
+            moveObj = tryAlternateFormats(moveNotation);
+        }
+
+        if (moveObj) {
+            return { success: true };
+        } else {
+            return {
+                success: false,
+                error: `Error at move ${moveIndex + 1}: Invalid notation "${moveNotation}"`
+            };
+        }
+    } catch (e) {
+        return {
+            success: false,
+            error: `Error at move ${moveIndex + 1}: ${e.message}`
+        };
+    }
+}
+
+function tryAlternateFormats(notation) {
+    // Try piece notation as destination only (e.g., "Kg2" → "g2")
+    if (/^[KQRBN][a-h][1-8]$/.test(notation)) {
+        const destination = notation.substring(1);
+        let moveObj = replayChess.move(destination, { sloppy: true });
+
+        // Try as capture if destination fails
+        if (!moveObj) {
+            const captureMove = notation[0] + 'x' + destination;
+            moveObj = replayChess.move(captureMove, { sloppy: true });
+        }
+
+        return moveObj;
+    }
+
+    return null;
+}
+
+function updateMoveCounter() {
+    const counterEl = document.getElementById('currentMoveNum');
+    if (counterEl) {
+        counterEl.textContent = `${currentMoveIndex}/${moves.length}`;
+    }
+}
+
+function renderPGNDisplay() {
+    const pgnContainer = document.getElementById('pgnDisplay');
+    let html = '';
+
+    // Create move pairs (white, black)
+    for (let i = 0; i < moves.length; i += 2) {
+        const moveNumber = Math.floor(i / 2) + 1;
+        const whiteMove = moves[i];
+        const blackMove = moves[i + 1] || null;
+
+        // Build move pair HTML
+        html += '<div>';
+        html += `<span style="font-weight:bold; margin-right:4px;">${moveNumber}.</span>`;
+        html += buildMoveSpan(i, whiteMove);
+
+        if (blackMove) {
+            html += ' ';
+            html += buildMoveSpan(i + 1, blackMove);
+        }
+
+        html += '</div>';
+    }
+
+    pgnContainer.innerHTML = html;
+}
+
+function buildMoveSpan(index, move) {
+    const isPlayed = index < currentMoveIndex - 1;
+    const isCurrent = index === currentMoveIndex - 1;
+    const isFuture = index >= currentMoveIndex;
+
+    let styles = 'cursor:pointer;';
+    
+    if (isPlayed) {
+        styles += 'color:#666;';
+    } else if (isCurrent) {
+        styles += 'color:#d32f2f; font-weight:bold;';
+    } else if (isFuture) {
+        styles += 'color:#999;';
+    }
+
+    return `<span style="${styles}" onclick="jumpToMove(${index + 1})">${move}</span>`;
+}
+
+
+/* ===== BOARD INITIALIZATION ===== */
+
+function initReplayBoard() {
+    const replayElement = document.getElementById('replayBoard');
+    if (!replayElement) {
+        console.error('Replay board element not found');
+        return;
+    }
+
+    // Initialize chess.js instance
+    replayChess = new Chess();
+
+    // Initialize chessboard.js instance
+    try {
+        replayBoard = Chessboard('replayBoard', {
+            draggable: false,
+            position: 'start',
+            pieceTheme: '/img/chesspieces/wikipedia/{piece}.png'
+        });
+    } catch (e) {
+        console.error('Failed to initialize replay board:', e);
+    }
+}
+
+function initPlayBoard() {
     const boardElement = document.getElementById('board');
     if (!boardElement) return;
+
+    if (typeof Chessboard === 'undefined') {
+        console.error('Chessboard.js not loaded');
+        return;
+    }
 
     board = Chessboard('board', {
         draggable: false,
         position: 'start',
-        pieceTheme: '/img/chesspieces/wikipedia/{piece}.png',
-        onDrop: handleMove
+        pieceTheme: '/img/chesspieces/wikipedia/{piece}.png'
     });
 }
 
-function handleMove(move) {
-    //board.move(move);
+function initSSE() {
+    evtSource = new EventSource('/moves/stream');
+
+    evtSource.onopen = () => {
+        console.log('SSE connection established');
+    };
+
+    evtSource.onerror = (err) => {
+        console.error('SSE error:', err);
+    };
+
+    // Listen for move events
+    evtSource.addEventListener('move', (event) => {
+        if (board) {
+            board.move(event.data);
+        }
+    });
 }
 
-// ===== INITIALIZE =====
+
+/* ===== INITIALIZATION ===== */
+
 window.addEventListener('load', () => {
-    // Initialize chessboard if it's present
+    // Initialize play board if present
     if (document.getElementById('board')) {
-        initChessBoard();
+        initPlayBoard();
+        initSSE();
     }
-});
-
-
-// ===== SSE =====
-const evtSource = new EventSource("/moves/stream");
-evtSource.onopen = () => console.log("SSE connected");
-evtSource.onerror = (err) => console.error("SSE error:", err);
-
-// Listen for named event "move"
-evtSource.addEventListener("move", (event) => {
-    board.move(event.data); // e.g., "e2-e4"
 });

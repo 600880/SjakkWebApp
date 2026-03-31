@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import brett.Brett;
-import brett.ChessBoard;
 import brett.Rute;
 import brikke.Bonde;
 import brikke.Brikke;
@@ -157,13 +156,9 @@ public class Parti {
 		PNG = "";		
 		trekknummer = 1;
 
-		//ChessBoard chessBoard = new ChessBoard(this, hvit, svart);
-
 		while (true) {
 			if (!spillTrekk(hvit, Farge.HVIT)) break;
-			//chessBoard.repaint();
 			if (!spillTrekk(svart, Farge.SVART)) break;
-			//chessBoard.repaint();
 		}
 		
 	}
@@ -187,6 +182,7 @@ public class Parti {
 		Trekk trekk = spiller.trekk();
 		leggTilPNG(trekk.toPGN());
 
+		// Spill CPU-trekk i frontend.
 		String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
 		SpillController.makeAIMove(trekkStr);
 

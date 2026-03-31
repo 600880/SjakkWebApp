@@ -7,12 +7,8 @@ import java.util.concurrent.Future;
 
 import com.example.sjakkwebapp.*;
 
-//import javax.swing.JOptionPane;
-
-import brett.ChessBoard;
 import brett.Rute;
 import brikke.Brikke;
-//import brikke.Bonde;
 import brikke.Farge;
 import util.Utils;
 
@@ -27,7 +23,6 @@ public class Spiller {
 	private final int[][] indeksTabell;
 	private int evaluering;
 	private boolean CPU;
-	private ChessBoard chessBoard;
 	
 	
 	public Spiller(String navn, Farge farge, int dybde, boolean CPU, Parti parti) {
@@ -38,10 +33,6 @@ public class Spiller {
 		this.parti = parti;
 		spillerBrikker = farge == Farge.HVIT ? parti.getBrikkerHvit() : parti.getBrikkerSvart();
 		indeksTabell = new int[2][spillerBrikker.size()];
-	}
-	
-	public Trekk trekk() {
-		return CPU ? trekkCPU() : trekkBruker();
 	}
 	
 	/**
@@ -69,100 +60,10 @@ public class Spiller {
 	}*/
 	
 	/**
-	 * Bruker velger trekk.
-	 * @return trekk
-	 */
-	private Trekk trekkBruker() {
-
-		// Tegn opp brett.
-		//if (parti.getSisteTrekk() != null) System.out.println(parti.getSisteTrekk().toString());
-		
-		boolean fortsett = true;
-		Trekk trekk = null;
-		
-		while (fortsett) {
-			// Hent x og y.
-			int x = chessBoard.getX();
-			int y = chessBoard.getY();
-			
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-			
-			/*int x;
-			int y;
-			
-			try {
-				String koordinat = JOptionPane.showInputDialog("Brikke");
-				x = Utils.charToInt(koordinat.charAt(0));
-				y = Character.getNumericValue(koordinat.charAt(1));
-			} catch (Exception e) {
-				continue;
-			}
-			*/
-			
-			if (x < 1 || x > 8 || y < 1 || y > 8) continue;
-			
-					
-			Rute rute = parti.getBrett().finnRute(x, y);
-			if (!rute.harBrikke() || !(rute.getBrikke().getFarge() == farge)) continue;
-
-			Brikke brikke = rute.getBrikke();
-
-			// Marker rute og hent ny x og y.
-			chessBoard.repaint();
-			
-			/*
-			try {
-				String koordinat = JOptionPane.showInputDialog(brikke.getClass().getSimpleName()
-						+ " [" + rute.toString() + "]\nNy Rute");
-				x = Utils.charToInt(koordinat.charAt(0));
-				y = Character.getNumericValue(koordinat.charAt(1));
-			} catch (Exception e) {
-				continue;
-			}
-			*/
-			
-			int tmpX = x;
-			int tmpY = y;
-			
-			while (tmpX == x && tmpY == y) {
-	            try {
-	                Thread.sleep(10);
-	            } catch (InterruptedException e) {
-	                e.printStackTrace();
-	            }
-				x = chessBoard.getX();
-				y = chessBoard.getY();
-			}
-			
-			if (x < 1 || x > 8 || y < 1 || y > 8) continue;
-			
-			rute = parti.getBrett().finnRute(x, y);
-			for (Rute r : brikke.getLovligeTrekk()) {
-				if (r.equals(rute)) {
-					trekk = brikke.flytt(rute);
-					fortsett = false;
-					break;
-				}
-			}
-			// Fjern markering
-			chessBoard.setX(-1);
-			chessBoard.setY(-1);
-			chessBoard.repaint();
-		}
-		System.out.println(trekk.toString());
-		return trekk;
-		
-	}
-	
-	/**
 	 * Strategi for � velge trekk.
 	 * @return trekk
 	 */
-	private Trekk trekkCPU() {
+	public Trekk trekk() {
 		
 		// EvalueringRunnable evaluerer hver brikke "i", og lagrer indeks til beste trekk i indeksTabell posisjon "i".
 		List<Future<?>> futures = new ArrayList<Future<?>>();
@@ -240,10 +141,6 @@ public class Spiller {
 	
 	public void setCPU(boolean CPU) {
 		this.CPU = CPU;
-	}
-	
-	public void setChessBoard(ChessBoard chessBoard) {
-		this.chessBoard = chessBoard;
 	}
 	
 	@Override

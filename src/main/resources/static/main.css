@@ -30,7 +30,7 @@ body {
 }
 
 /* ===== Form Elements ===== */
-input[type="text"], input[type="password"], input[type="email"] {
+input[type="text"], input[type="password"], input[type="email"], select {
     width: 100%;
     padding: 10px 12px;
     margin: 8px 0;
@@ -38,9 +38,10 @@ input[type="text"], input[type="password"], input[type="email"] {
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.2s;
+    background-color: white;
 }
 
-input:focus {
+input:focus, select:focus {
     outline: none;
     border-color: #2c6e49;
     box-shadow: 0 0 0 2px rgba(44, 110, 73, 0.1);
@@ -58,15 +59,21 @@ button {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
 }
 
-button:hover {
+button:hover:not(:disabled) {
     background-color: #1f4d34;
 }
 
-button:active {
+button:active:not(:disabled) {
     transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #999;
 }
 
 button.replay-btn, button.control-btn {
@@ -74,6 +81,14 @@ button.replay-btn, button.control-btn {
     padding: 8px 16px;
     margin: 4px;
     font-size: 13px;
+}
+
+button.reset-btn {
+    background-color: #666;
+}
+
+button.reset-btn:hover:not(:disabled) {
+    background-color: #444;
 }
 
 /* ===== Links ===== */
@@ -172,20 +187,54 @@ header button:hover {
 .play-section {
     max-width: 900px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.controls-panel {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.control-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.control-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+}
+
+.control-group select {
+    margin: 0;
+    max-width: 200px;
 }
 
 .button-group {
     display: flex;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-top: 10px;
 }
 
 .button-group button {
     width: auto;
     padding: 10px 24px;
     margin: 0;
-    flex: 0 1 auto;
+    flex: 1;
 }
 
 #board {
@@ -202,6 +251,8 @@ header button:hover {
     border: 1px solid #ddd;
     padding: 16px;
     border-radius: 4px;
+    width: 100%;
+    max-width: 500px;
     min-height: 60px;
     white-space: pre-wrap;
     font-family: 'Courier New', monospace;
@@ -419,4 +470,3 @@ table button {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-

@@ -4,12 +4,14 @@
 
 /* ===== STATE VARIABLES ===== */
 let board = null;
+let game = new Chess();
 let currentGame = null;
 let replayChess = null;
 let replayBoard = null;
 let currentMoveIndex = 0;
 let moves = [];
 let evtSource = null;
+let gameRunning = false;
 
 
 /* ===== UI / TAB MANAGEMENT ===== */
@@ -47,17 +49,86 @@ function switchTab(tabName) {
 
 /* ===== PLAY / SIMULATION ===== */
 
-function runProgram() {
-    // Reset board to starting position
+function getCPULevel() {
+    const selector = document.getElementById('cpuLevel');
+    return selector ? selector.value : 3;
+}
+
+function updateUIState(running) {
+    gameRunning = running;
+    const playBtn = document.getElementById('playBtn');
+    const simulateBtn = document.getElementById('simulateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const cpuSelector = document.getElementById('cpuLevel');
+
+    if (playBtn) playBtn.disabled = running;
+    if (simulateBtn) simulateBtn.disabled = running;
+    if (cpuSelector) cpuSelector.disabled = running;
+    if (resetBtn) resetBtn.disabled = !running;
+}
+
+function startInteractive() {
+    if (gameRunning) return;
+    
+    const level = getCPULevel();
+    updateUIState(true);
+    
+    game.reset();
+    if (board) {
+        board.destroy();
+    }
+    initPlayBoard(true); // Draggable
+    
+    fetch(`/spill?dybde=${level}`)
+        .then(res => res.text())
+        .then(data => {
+            const output = document.getElementById('output');
+            if (output) output.innerText = `Interactive Game started (Level ${level})! You are White.`;
+        })
+        .catch(err => {
+            updateUIState(false);
+            displaySimulationError(err);
+        });
+}
+
+function startSimulation() {
+    if (gameRunning) return;
+
+    const level = getCPULevel();
+    updateUIState(true);
+
+    game.reset();
+    if (board) {
+        board.destroy();
+    }
+    initPlayBoard(false); // Not draggable
+    
+    fetch(`/simulate?dybde=${level}`)
+        .then(res => res.text())
+        .then(data => {
+            const output = document.getElementById('output');
+            if (output) output.innerText = `Simulation started (Level ${level})...`;
+        })
+        .catch(err => {
+            updateUIState(false);
+            displaySimulationError(err);
+        });
+}
+
+function resetGame() {
+    updateUIState(false);
+    game.reset();
     if (board) {
         board.position('start');
+        board.destroy();
+        initPlayBoard(true);
     }
+    const output = document.getElementById('output');
+    if (output) output.innerText = 'Choose a mode to start';
+}
 
-    // Fetch simulation result from server
-    fetch('/spill')
-        .then(handleSimulationResponse)
-        .then(displaySimulationOutput)
-        .catch(displaySimulationError);
+function runProgram() {
+    startInteractive();
 }
 
 function handleSimulationResponse(res) {
@@ -395,7 +466,42 @@ function initReplayBoard() {
     }
 }
 
-function initPlayBoard() {
+function onDrop(source, target) {
+    // see if the move is legal
+    let move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // NOTE: always promote to a queen for simplicity
+    });
+
+    // illegal move
+    if (move === null) return 'snapback';
+
+    // send move to backend
+    sendMoveToServer(source, target);
+}
+
+function sendMoveToServer(from, to) {
+    const formData = new URLSearchParams();
+    formData.append('from', from);
+    formData.append('to', to);
+
+    fetch('/move', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+    }).then(res => {
+        if (!res.ok) {
+            alert('Move rejected by server');
+            game.undo();
+            board.position(game.fen());
+        }
+    });
+}
+
+function initPlayBoard(isDraggable = true) {
     const boardElement = document.getElementById('board');
     if (!boardElement) return;
 
@@ -405,8 +511,9 @@ function initPlayBoard() {
     }
 
     board = Chessboard('board', {
-        draggable: false,
+        draggable: isDraggable,
         position: 'start',
+        onDrop: isDraggable ? onDrop : undefined,
         pieceTheme: '/img/chesspieces/wikipedia/{piece}.png'
     });
 }
@@ -425,7 +532,17 @@ function initSSE() {
     // Listen for move events
     evtSource.addEventListener('move', (event) => {
         if (board) {
-            board.move(event.data);
+            const moveStr = event.data;
+            // Handle move like "e2-e4"
+            const parts = moveStr.split('-');
+            if (parts.length === 2) {
+                game.move({ from: parts[0], to: parts[1], promotion: 'q' });
+                board.position(game.fen());
+            } else {
+                // Fallback for other formats
+                board.move(moveStr);
+                game.move(moveStr, { sloppy: true });
+            }
         }
     });
 }
@@ -438,5 +555,6 @@ window.addEventListener('load', () => {
     if (document.getElementById('board')) {
         initPlayBoard();
         initSSE();
+        updateUIState(false);
     }
 });

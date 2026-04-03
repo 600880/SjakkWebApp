@@ -31,10 +31,25 @@
 <div id="play" class="tab-content">
     <div class="play-section">
         <div id="board"></div>
-        <div class="button-group">
-            <button onclick="runProgram()">Simulate</button>
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="cpuLevel">CPU Level:</label>
+                <select id="cpuLevel">
+                    <option value="1">1 (Fastest)</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4 (Normal)</option>
+                    <option value="5">5</option>
+                    <option value="6">6 (Strongest)</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="playBtn" onclick="startInteractive()">Play vs CPU</button>
+                <button id="simulateBtn" onclick="startSimulation()">Simulate</button>
+                <button id="resetBtn" class="reset-btn" onclick="resetGame()" disabled>Reset</button>
+            </div>
         </div>
-        <div id="output">Click Simulate to start</div>
+        <div id="output">Choose a mode to start</div>
     </div>
 </div>
 

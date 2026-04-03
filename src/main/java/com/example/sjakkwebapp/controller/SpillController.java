@@ -163,19 +163,6 @@ public class SpillController {
 
         return emitter;
     }
-
-    // Push a move to all connected clients
-    /*@PostMapping("/moves/push")
-    public ResponseEntity<String> pushMove(@RequestBody String move) {
-        for (SseEmitter emitter : clients) {
-            try {
-                emitter.send(SseEmitter.event().name("move").data(move));
-            } catch (IOException e) {
-                clients.remove(emitter);
-            }
-        }
-        return ResponseEntity.ok("Move pushed: " + move);
-    }*/
     
     public static void makeAIMove(String move) {
         for (SseEmitter emitter : clients) {

@@ -30,25 +30,25 @@ public abstract class Brikke {
 	 * @param rute
 	 * @param farge
 	 * @param parti
-	 * Metode brukes av kopikonstruktør for parti.
+	 * Metode brukes av kopikonstruktÃ¸r for parti.
 	 */
 	public abstract void nyInstanse(Rute rute, Farge farge, Parti parti);
 	
 	/**
-	 * Går gjennom alle mulige trekk og tar vare på lovlige trekk i en liste.
+	 * GÃ¥r gjennom alle mulige trekk og tar vare pÃ¥ lovlige trekk i en liste.
 	 * @return liste av lovlige trekk
 	 */
 	public abstract ArrayList<Rute> finnLovligeTrekk();
 	
 	/**
-	 * Kontrollerer om brikke angriper rute uten å ta forbehold om at brikke kan flytte.
+	 * Kontrollerer om brikke angriper rute uten Ã¥ ta forbehold om at brikke kan flytte.
 	 * @param rute
 	 * @return brikke angriper rute
 	 */
 	public abstract boolean angriperRute(Rute rute);
 	
 	/**
-	 * Brikke på PGN-format.
+	 * Brikke pÃ¥ PGN-format.
 	 * @return bokstav
 	 */
 	public abstract char tilPGN();
@@ -115,7 +115,7 @@ public abstract class Brikke {
 	/**
 	 * Hjelpemetode som sjekker om brikke kan flytte til rute, og om brikke stoppes. 
 	 * @param nyRute
-	 * @return hindring møtt
+	 * @return hindring mÃ¸tt
 	 */
 	protected boolean leggTil(Rute nyRute) {
 		

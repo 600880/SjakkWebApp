@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SjakkWebAppApplication {
 	
 	private static final int p = Runtime.getRuntime().availableProcessors();
-	public static final ExecutorService traadsamling = Executors.newFixedThreadPool(p/2);
+	public static final ExecutorService traadsamling = Executors.newFixedThreadPool(Math.max(1, p / 2));
 
 	public static void main(String[] args) {
 		SpringApplication.run(SjakkWebAppApplication.class, args);

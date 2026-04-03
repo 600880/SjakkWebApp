@@ -26,12 +26,12 @@ public class Parti {
 	
 	private final static List<String> stillinger = new ArrayList<String>();
 	private final static List<String> stillingerRepetert = new ArrayList<String>();
-	private static String PNG;
+	private String PNG;
 	private int trekknummer;
 
 
 	/**
-	 * Brikker opprettes og plasseres p� brettet.
+	 * Brikker opprettes og plasseres på brettet.
 	 */
 	public Parti() {
 
@@ -65,7 +65,7 @@ public class Parti {
 	
 	/**
 	 * Kopierer parti, brett, brikker.
-	 * Tar vare p� siste trekk og teller for 50-trekk.
+	 * Tar vare på siste trekk og teller for 50-trekk.
 	 * @param parti
 	 */
 	public Parti (Parti parti) {
@@ -111,7 +111,7 @@ public class Parti {
 	}
 	
 	/**
-	 * Antall trekk f�r det har g�tt 50 trekk blir tilbakestilt til 0.
+	 * Antall trekk før det har gått 50 trekk blir tilbakestilt til 0.
 	 */
 	public void tilbakestillFemtiTrekk() {
 		femtiTrekk = 0;
@@ -198,7 +198,7 @@ public class Parti {
 	}
 	
 	/**
-	 * Nytt trekk opprettes, og aktuelle ruter og brikker f�r nye verdier. 
+	 * Nye trekk opprettes, og aktuelle ruter og brikker får nye verdier. 
 	 * @param trekk
 	 */
 	public void nyttTrekk(Trekk trekk) {
@@ -223,10 +223,10 @@ public class Parti {
 	}
 	
 	/**
-	 * Sjekker om spiller st�r i sjakk etter trekk.
-	 *  - Utf�rer trekket.
-	 *  - Finner rute til spillers konge, og g�r gjennom motspillers brikker.
-	 *  - Hvis en brikke angriper kongerute st�r konge i sjakk.
+	 * Sjekker om spiller står i sjakk etter trekk.
+	 *  - Utfører trekket.
+	 *  - Finner rute til spillers konge, og går gjennom motspillers brikker.
+	 *  - Hvis en brikke angriper kongerute står konge i sjakk.
 	 *  - Reverserer trekket igjen.
 	 * @param brikke
 	 * @param nyRute
@@ -357,7 +357,7 @@ public class Parti {
 	}
 	
 	/**
-	 * Flytter t�rn til korrekt posisjon ved rokadetrekk.
+	 * Flytter tårn til korrekt posisjon ved rokadetrekk.
 	 * @param x-koordinat konge
 	 * @param y-koordinat konge
 	 */
@@ -410,7 +410,7 @@ public class Parti {
 	}
 	
 	/**
-	 * Sletter utsl�tt bonde fra brikker og rute.
+	 * Sletter utslått bonde fra brikker og rute.
 	 */
 	public void enPassant() {
 		

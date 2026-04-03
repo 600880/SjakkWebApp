@@ -43,7 +43,7 @@ public class Konge extends Brikke {
 	}
 
 	/**
-	 * Går gjennom alle mulige trekk og tar vare på lovlige trekk i en liste.
+	 * GÃ¥r gjennom alle mulige trekk og tar vare pÃ¥ lovlige trekk i en liste.
 	 * @return liste av lovlige trekk
 	 */
 	@Override
@@ -91,7 +91,7 @@ public class Konge extends Brikke {
 	}
 	
 	/**
-	 * Kontrollerer om brikke angriper rute uten å ta forbehold om at brikke kan flytte.
+	 * Kontrollerer om brikke angriper rute uten Ã¥ ta forbehold om at brikke kan flytte.
 	 * @param rute
 	 * @return brikke angriper rute
 	 */
@@ -109,7 +109,7 @@ public class Konge extends Brikke {
 	}
 	
 	/**
-	 * Metode kontrollerer at det er ingen brikker mellom konge og tårn, at tårn ikke har flyttet,
+	 * Metode kontrollerer at det er ingen brikker mellom konge og tÃ¥rn, at tÃ¥rn ikke har flyttet,
 	 * og at rutene konge skal flytte over ikke er under angrep.
 	 * @return rokade mulig
 	 */
@@ -142,7 +142,7 @@ public class Konge extends Brikke {
 	}
 	
 	/**
-	 * Metode kontrollerer at det er ingen brikker mellom konge og tårn, at tårn ikke har flyttet,
+	 * Metode kontrollerer at det er ingen brikker mellom konge og tÃ¥rn, at tÃ¥rn ikke har flyttet,
 	 * og at rutene konge skal flytte over ikke er under angrep.
 	 * @return rokade mulig
 	 */

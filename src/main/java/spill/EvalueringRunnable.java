@@ -71,7 +71,7 @@ public class EvalueringRunnable implements Runnable {
 		// Spiller hvert lovlige trekk for brikke.
 		for (int j = 0, trekk = brikke.getLovligeTrekk().size(); j < trekk; j++) {
 			
-			// Ny kopi som trekket skal spilles på.
+			// Ny kopi som trekket skal spilles pÃ¥.
 			Parti partiKopi = new Parti(parti);
 			Brikke brikke = farge == Farge.HVIT ? partiKopi.getBrikkerHvit().get(i) : partiKopi.getBrikkerSvart().get(i);			
 			Rute rute = brikke.kopierTrekk(this.brikke, j);
@@ -79,7 +79,7 @@ public class EvalueringRunnable implements Runnable {
 			
 			int verdiAktivtTrekk = logikk.evaluerTrekk(dynamiskDybde);
 			
-			// Hvis verdidifferansen er mer i spillers favør lagres indeksene til trekket.
+			// Hvis verdidifferansen er mer i spillers favÃ¸r lagres indeksene til trekket.
 			if (farge == Farge.HVIT && verdiAktivtTrekk > besteEvaluering
 					|| farge == Farge.SVART && verdiAktivtTrekk < besteEvaluering) {
 				

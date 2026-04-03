@@ -51,7 +51,7 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Utfører trekket og kaller alle evalueringsmetoder.
+	 * UtfÃ¸rer trekket og kaller alle evalueringsmetoder.
 	 * @param dybde
 	 * @return evaluering
 	 */
@@ -62,7 +62,7 @@ public class Spillerlogikk {
 		verdiAktivtTrekk += distanseTilKonge();
 		verdiAktivtTrekk += brikkestrategi();
 
-		// Utfører trekket.
+		// UtfÃ¸rer trekket.
 		brikke.flytt(rute);
 		
 		if (trekkrepetisjon(partiKopi, motspillerfarge)) return 0;
@@ -103,7 +103,7 @@ public class Spillerlogikk {
 			
 			for (Brikke b : spillersBrikker) {
 				if (b.angriperRute(motspillersKongerute)) {
-					// Sjakk matt - dybde differensierer mellom brikker som har funnet ulike mattmønster.
+					// Sjakk matt - dybde differensierer mellom brikker som har funnet ulike mattmÃ¸nster.
 					return besteEvaluering / 2 + dybde * fortegn;
 				}
 			}
@@ -113,14 +113,14 @@ public class Spillerlogikk {
 		// Sorterer brikkene etter antatt sterkeste trekk, og lagrer indeks til brikke og trekk.
 		int[][] indekstabell = sorter(antallTrekk);		
 		
-		// Spiller alle trekk for alle brikker etter sortert rekkefølge.
+		// Spiller alle trekk for alle brikker etter sortert rekkefÃ¸lge.
 		label:
 		for (int i = antallTrekk - 1; i >= 0; i--) {
 			
 			int brikkeindeks = indekstabell[0][i];
 			int ruteindeks = indekstabell[1][i];
 			
-			// Ny kopi som trekket skal spilles på.
+			// Ny kopi som trekket skal spilles pÃ¥.
 			Parti partiKopiRek = new Parti(partiKopi);
 			Brikke brikkeKopi = motspillerfarge == Farge.HVIT
 				? partiKopiRek.getBrikkerHvit().get(brikkeindeks)
@@ -130,7 +130,7 @@ public class Spillerlogikk {
 			Rute ruteKopi = partiKopiRek.getBrett().finnRute(rute.getX(), rute.getY());
 			Spillerlogikk logikk = new Spillerlogikk(partiKopiRek, brikkeKopi, ruteKopi);
 			
-			// Utfører trekket.
+			// UtfÃ¸rer trekket.
 			brikkeKopi.flytt(ruteKopi);
 			
 			// Sjekker for trekkrepetisjon.
@@ -146,14 +146,14 @@ public class Spillerlogikk {
 				verdiAktivtTrekk = logikk.rekursivEvaluering(dybde-1, alpha, beta);
 			}
 							
-			// Hvis verdidifferansen er mer i spillers favør lagres indeksene til trekket.
+			// Hvis verdidifferansen er mer i spillers favÃ¸r lagres indeksene til trekket.
 			if (motspillerfarge == Farge.HVIT && verdiAktivtTrekk > besteEvaluering
 					|| motspillerfarge == Farge.SVART && verdiAktivtTrekk < besteEvaluering) {
 				
 				besteEvaluering = verdiAktivtTrekk;
 			}
 			
-			// Beskjæring av evalueringstre.
+			// BeskjÃ¦ring av evalueringstre.
 			if (motspillerfarge == Farge.HVIT && verdiAktivtTrekk > alpha) {
 				alpha = verdiAktivtTrekk;
 			} else if (motspillerfarge == Farge.SVART && verdiAktivtTrekk < beta) {
@@ -168,9 +168,9 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Kontrollerer om stilling allerede har oppstått to ganger.
+	 * Kontrollerer om stilling allerede har oppstÃ¥tt to ganger.
 	 * @param parti
-	 * @return stilling nådd to ganger
+	 * @return stilling nÃ¥dd to ganger
 	 */
 	private boolean trekkrepetisjon(Parti parti, Farge farge) {
 		
@@ -227,13 +227,13 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Trekker fra verdi for spillers brikke med høyest verdi som står i slag og ikke kan forsvares.
+	 * Trekker fra verdi for spillers brikke med hÃ¸yest verdi som stÃ¥r i slag og ikke kan forsvares.
 	 * Metode teller ikke forsvarere, eller kontrollerer om forsvarstrekk er lovlig i gitt kontekst.
 	 * @return evaluering
 	 */
 	private int brikkerUnderAngrep() {
 		
-		// Liste med alle ruter som spiller har brikker på, untatt kongerute.
+		// Liste med alle ruter som spiller har brikker pÃ¥, untatt kongerute.
 		int antallBrikker = spillersBrikker.size() - 1;
 		Rute[] brikkeruter = new Rute[antallBrikker];
 		
@@ -253,10 +253,10 @@ public class Spillerlogikk {
 						&& r.getBrikke().getVerdi() > verdivurdering
 						&& !partiKopi.sjakk(b, r, false)) {
 					
-					// En brikke står i slag og har høyere verdi enn tidligere brikke i slag.
+					// En brikke stÃ¥r i slag og har hÃ¸yere verdi enn tidligere brikke i slag.
 					Brikke brikkeISlag = r.getBrikke();
 					
-					for (Brikke b2 : spillersBrikker) { // Går gjennom spillers egne brikker.
+					for (Brikke b2 : spillersBrikker) { // GÃ¥r gjennom spillers egne brikker.
 						
 						if (!b2.equals(brikkeISlag) && b2.angriperRute(r)) { // Spillers brikke kan forsvare ruten.
 							
@@ -289,9 +289,9 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Regner ut distanse mellom brikke og motstanders konge før og etter trekk.
-	 * Metode kalles før trekk spilles.
-	 * @return 1 eller 0 avhengig om brikke står nærmere.
+	 * Regner ut distanse mellom brikke og motstanders konge fÃ¸r og etter trekk.
+	 * Metode kalles fÃ¸r trekk spilles.
+	 * @return 1 eller 0 avhengig om brikke stÃ¥r nÃ¦rmere.
 	 */
 	private int distanseTilKonge() {
 		
@@ -310,13 +310,13 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Vektlegger logiske trekk høyere. Metode kalles før trekk spilles.
+	 * Vektlegger logiske trekk hÃ¸yere. Metode kalles fÃ¸r trekk spilles.
 	 * + Trekk med uflyttede brikker, rokadetrekk.
 	 * + Bondetrekk som angriper brikker.
 	 * - Bondetrekk forran egen konge.
 	 * - Bondetrekk som gir dobbelbonde.
-	 * - Tårntrekk på samme fil som egen bonde før sluttspill.
-	 * - Trekk med konge før sluttspill.
+	 * - TÃ¥rntrekk pÃ¥ samme fil som egen bonde fÃ¸r sluttspill.
+	 * - Trekk med konge fÃ¸r sluttspill.
 	 * @return evaluering
 	 */
 	private int brikkestrategi() {
@@ -343,12 +343,12 @@ public class Spillerlogikk {
 			l = 8;
 		}
 		
-		// Brikke flyttes tilbake til første rad.
+		// Brikke flyttes tilbake til fÃ¸rste rad.
 		if (brikke.getUroert() == false && rute.getY() == l && spillersBrikker.size() > 10) verdivurdering--;	
 			
 		if (brikke instanceof Bonde) {
 		
-			// Legger til poeng hvis sentrumsbonde er urørt.
+			// Legger til poeng hvis sentrumsbonde er urÃ¸rt.
 			if (brikke.getRute().getY() == k && (rute.getX() == 4 || rute.getX() == 5)) {
 				if ((rand.nextBoolean() || rute.getX() == 5) && rute.getY() == i) {
 					verdivurdering += 2;
@@ -394,7 +394,7 @@ public class Spillerlogikk {
 		
 		} else if (brikke instanceof Hest) {
 		
-			// Legger til poeng hvis hest er urørt og kan flyttes mot midten.
+			// Legger til poeng hvis hest er urÃ¸rt og kan flyttes mot midten.
 			if (brikke.getUroert() && (rute.getX() == 3 || rute.getX() == 6)) {
 				if (rand.nextBoolean()) verdivurdering += 2;
 				else verdivurdering++;
@@ -409,7 +409,7 @@ public class Spillerlogikk {
 		
 			if (rute.getX() == 7 && brikke.getUroert() || rute.getX() == 3 && brikke.getUroert()) {
 				verdivurdering += 4;
-			// Ønsker ikke å flytte konge hvis spiller har flere andre brikker.
+			// Ã˜nsker ikke Ã¥ flytte konge hvis spiller har flere andre brikker.
 			} else if (spillersBrikker.size() > 3) verdivurdering--;
 		
 		}
@@ -440,7 +440,7 @@ public class Spillerlogikk {
 	}
 	
 	/**
-	 * Hjelpemetode som først beregner verdien for hvert trekk, og deretter sorterer tabellen.
+	 * Hjelpemetode som fÃ¸rst beregner verdien for hvert trekk, og deretter sorterer tabellen.
 	 * @param antall mulige trekk
 	 * @return sortert indekstabell
 	 */

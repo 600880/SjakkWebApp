@@ -32,7 +32,7 @@ public class Brett {
 	}
 	
 	/**
-	 *  Brett tømmes for brikker.
+	 *  Brett tÃ¸mmes for brikker.
 	 */
 	public void fjernBrikker() {
 		

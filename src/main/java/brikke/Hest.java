@@ -19,7 +19,7 @@ public class Hest extends Brikke {
 	}
 
 	/**
-	 * Går gjennom alle mulige trekk og tar vare på lovlige trekk i en liste.
+	 * GÃ¥r gjennom alle mulige trekk og tar vare pÃ¥ lovlige trekk i en liste.
 	 * @return liste av lovlige trekk
 	 */
 	@Override
@@ -47,7 +47,7 @@ public class Hest extends Brikke {
 	}
 	
 	/**
-	 * Kontrollerer om brikke angriper rute uten å ta forbehold om at brikke kan flytte.
+	 * Kontrollerer om brikke angriper rute uten Ã¥ ta forbehold om at brikke kan flytte.
 	 * @param rute
 	 * @return brikke angriper rute
 	 */

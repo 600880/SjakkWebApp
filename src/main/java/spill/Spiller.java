@@ -60,7 +60,7 @@ public class Spiller {
 	}*/
 	
 	/**
-	 * Strategi for � velge trekk.
+	 * Strategi for å velge trekk.
 	 * @return trekk
 	 */
 	public Trekk trekk() {

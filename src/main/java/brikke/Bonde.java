@@ -25,8 +25,8 @@ public class Bonde extends Brikke {
 
 	/**
 	 * Trekk opprettes og sendes til parti.
-	 * Kontrollerer om bonde utfører en passant.
-	 * Hvis bonde når siste rad vil den bli promotert.
+	 * Kontrollerer om bonde utfÃ¸rer en passant.
+	 * Hvis bonde nÃ¥r siste rad vil den bli promotert.
 	 * Regel for 50 trekk tilbakestilles.
 	 * @param rute
 	 * @return trekk
@@ -53,7 +53,7 @@ public class Bonde extends Brikke {
 	}
 	
 	/**
-	 * Går gjennom alle mulige trekk og tar vare på lovlige trekk i en liste.
+	 * GÃ¥r gjennom alle mulige trekk og tar vare pÃ¥ lovlige trekk i en liste.
 	 * @return liste av lovlige trekk
 	 */
 	@Override
@@ -101,7 +101,7 @@ public class Bonde extends Brikke {
 			}
 		}
 		
-		// Slår mot høyre.
+		// SlÃ¥r mot hÃ¸yre.
 		if (x < 8) {
 			nyRute = brett.finnRute(x + 1, y + en);
 			
@@ -112,7 +112,7 @@ public class Bonde extends Brikke {
 			}
 		}
 		
-		// Slår mot venstre.
+		// SlÃ¥r mot venstre.
 		if (x > 1) {
 			nyRute = brett.finnRute(x - 1, y + en);
 			
@@ -148,7 +148,7 @@ public class Bonde extends Brikke {
 	}
 	
 	/**
-	 * Kontrollerer om brikke angriper rute uten å ta forbehold om at brikke kan flytte.
+	 * Kontrollerer om brikke angriper rute uten Ã¥ ta forbehold om at brikke kan flytte.
 	 * @param rute
 	 * @return brikke angriper rute
 	 */

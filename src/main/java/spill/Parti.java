@@ -28,7 +28,15 @@ public class Parti {
 	private final static List<String> stillingerRepetert = new ArrayList<String>();
 	private String PNG;
 	private int trekknummer;
+	private String bruker;
 
+	public void setBruker(String bruker) {
+		this.bruker = bruker;
+	}
+
+	public String getBruker() {
+		return bruker;
+	}
 
 	/**
 	 * Brikker opprettes og plasseres på brettet.
@@ -184,12 +192,12 @@ public class Parti {
 
 		// Spill CPU-trekk i frontend.
 		String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
-		SpillController.makeAIMove(trekkStr);
+		SpillController.makeAIMove(bruker, trekkStr);
 
-		if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove(
+		if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove(bruker, 
 			farge == Farge.HVIT ? "h1-f1" : "h8-f8"
 		);
-		else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove(
+		else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove(bruker, 
 			farge == Farge.HVIT ? "a1-d1" : "a8-d8"
 		);
 

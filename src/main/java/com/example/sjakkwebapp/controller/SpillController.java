@@ -47,6 +47,7 @@ public class SpillController {
     	String spillerSvart = "cpu@cpu.no";
 
     	spill.Parti parti = new spill.Parti();
+        parti.setBruker(spillerHvit);
         // Interactive: Human is White, CPU is Black
         Spiller hvit = new Spiller(spillerHvit, Farge.HVIT, dybde, false, parti);
         Spiller svart = new Spiller(spillerSvart, Farge.SVART, dybde, true, parti);
@@ -69,6 +70,7 @@ public class SpillController {
     	String spillerSvart = "cpu@cpu.no";
 
     	spill.Parti parti = new spill.Parti();
+        parti.setBruker(spillerHvit);
         // Simulation: Both are CPU
         Spiller hvit = new Spiller("CPU-White", Farge.HVIT, dybde, true, parti);
         Spiller svart = new Spiller("CPU-Black", Farge.SVART, dybde, true, parti);
@@ -147,29 +149,33 @@ public class SpillController {
             .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     
-    // Keep track of all clients
-    private static final List<SseEmitter> clients = new CopyOnWriteArrayList<>();
+    // Keep track of all clients by username
+    private static final java.util.Map<String, SseEmitter> clients = new java.util.concurrent.ConcurrentHashMap<>();
 
     // Endpoint for clients to connect
     @GetMapping("/moves/stream")
-    public SseEmitter streamMoves() {
+    public SseEmitter streamMoves(HttpSession session) {
+        String bruker = (String) session.getAttribute("bruker");
+        if (bruker == null) return null;
+
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // no timeout
-        clients.add(emitter);
+        clients.put(bruker, emitter);
 
         // Remove emitter if connection is closed
-        emitter.onCompletion(() -> clients.remove(emitter));
-        emitter.onTimeout(() -> clients.remove(emitter));
-        emitter.onError((e) -> clients.remove(emitter));
+        emitter.onCompletion(() -> clients.remove(bruker));
+        emitter.onTimeout(() -> clients.remove(bruker));
+        emitter.onError((e) -> clients.remove(bruker));
 
         return emitter;
     }
     
-    public static void makeAIMove(String move) {
-        for (SseEmitter emitter : clients) {
+    public static void makeAIMove(String bruker, String move) {
+        SseEmitter emitter = clients.get(bruker);
+        if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().name("move").data(move));
             } catch (IOException e) {
-                clients.remove(emitter);
+                clients.remove(bruker);
             }
         }
     }

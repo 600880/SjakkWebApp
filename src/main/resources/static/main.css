@@ -470,3 +470,111 @@ table button {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ===== Notifications ===== */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background-color: white;
+    border-left: 5px solid #2c6e49;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 250px;
+    pointer-events: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-header {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #2c6e49;
+}
+
+.toast-body {
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.toast-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.toast-actions button {
+    margin: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+    width: auto;
+    flex: 1;
+}
+
+.toast-actions .btn-decline {
+    background-color: #666;
+}
+
+.toast-actions .btn-decline:hover {
+    background-color: #555;
+}
+
+/* ===== Online Users ===== */
+.online-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.online-section h4 {
+    font-size: 14px;
+    color: #2c6e49;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.online-section button {
+    width: auto;
+    padding: 4px 10px;
+    margin: 0;
+    font-size: 11px;
+    background-color: #666;
+}
+
+#online-users {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#online-users li {
+    font-size: 13px;
+    padding: 8px 10px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#online-users li button {
+    background-color: #2c6e49;
+}

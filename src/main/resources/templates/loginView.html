@@ -16,6 +16,7 @@
 </head>
 
 <body>
+<div id="notification-container"></div>
 <header>
     <h1>Chess Simulator</h1>
     <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none;"></form>
@@ -46,6 +47,11 @@
                 <button id="playBtn" onclick="startInteractive()">Play vs CPU</button>
                 <button id="simulateBtn" onclick="startSimulation()">Simulate</button>
                 <button id="resetBtn" class="reset-btn" onclick="resetGame()" disabled>Reset</button>
+            </div>
+            <div class="online-section">
+                <h4>Online Users</h4>
+                <button onclick="refreshOnlineUsers()">Refresh</button>
+                <ul id="online-users"></ul>
             </div>
         </div>
         <div id="output">Choose a mode to start</div>

@@ -90,20 +90,37 @@ public class SpillController {
 
     @PostMapping("/move")
     public ResponseEntity<String> userMove(@RequestParam String from, @RequestParam String to, HttpSession session) {
+        String bruker = (String) session.getAttribute("bruker");
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        Spiller hvit = (Spiller) session.getAttribute("hvit");
-        Spiller svart = (Spiller) session.getAttribute("svart");
-
-        if (parti == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game. Start by clicking Simulate.");
+        
+        PvPMatch match = activePvPMatches.get(bruker);
+        boolean isPvP = (match != null);
+        if (isPvP) {
+            parti = match.parti;
         }
 
-        // 1. Human Move
+        if (parti == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
+        }
+
+        // Determine whose turn it is
+        Trekk siste = parti.getSisteTrekk();
+        Farge currentTurn = (siste == null) ? Farge.HVIT : (siste.getBrikke().getFarge() == Farge.HVIT ? Farge.SVART : Farge.HVIT);
+
+        // Verify it's the user's turn and they own the color
+        if (isPvP) {
+            boolean isWhite = bruker.equals(match.hvit);
+            if (isWhite && currentTurn != Farge.HVIT) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (Black's turn)");
+            if (!isWhite && currentTurn != Farge.SVART) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (White's turn)");
+        } else {
+            if (currentTurn != Farge.HVIT) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (CPU's turn)");
+        }
+
         int fx = util.Utils.charToInt(from.charAt(0));
         int fy = Character.getNumericValue(from.charAt(1));
         Brikke brikke = parti.getBrett().finnRute(fx, fy).getBrikke();
         
-        if (brikke != null && brikke.getFarge() == Farge.HVIT) {
+        if (brikke != null && brikke.getFarge() == currentTurn) {
             int tx = util.Utils.charToInt(to.charAt(0));
             int ty = Character.getNumericValue(to.charAt(1));
             Rute tilRute = parti.getBrett().finnRute(tx, ty);
@@ -111,11 +128,18 @@ public class SpillController {
             // Execute move
             brikke.flytt(tilRute);
             
-            // 2. CPU Counter-move
-            // We use a separate thread or just run it here since it might take a second
-            new Thread(() -> {
-                parti.spillTrekk(svart, Farge.SVART);
-            }).start();
+            if (isPvP) {
+                // Notify opponent
+                String opponent = bruker.equals(match.hvit) ? match.svart : match.hvit;
+                notifyUser(opponent, "move", from + "-" + to);
+            } else {
+                // CPU Counter-move
+                Spiller svart = (Spiller) session.getAttribute("svart");
+                final spill.Parti cpuParti = parti;
+                new Thread(() -> {
+                    cpuParti.spillTrekk(svart, Farge.SVART);
+                }).start();
+            }
 
             return ResponseEntity.ok("Move accepted");
         }
@@ -151,6 +175,18 @@ public class SpillController {
     
     // Keep track of all clients by username
     private static final java.util.Map<String, SseEmitter> clients = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.Map<String, PvPMatch> activePvPMatches = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class PvPMatch {
+        spill.Parti parti;
+        String hvit;
+        String svart;
+        PvPMatch(String hvit, String svart) {
+            this.hvit = hvit;
+            this.svart = svart;
+            this.parti = new spill.Parti();
+        }
+    }
 
     // Endpoint for clients to connect
     @GetMapping("/moves/stream")
@@ -160,6 +196,18 @@ public class SpillController {
 
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // no timeout
         clients.put(bruker, emitter);
+
+        // Send a heartbeat every 20 seconds to keep the connection alive
+        new Thread(() -> {
+            try {
+                while (clients.containsKey(bruker)) {
+                    Thread.sleep(20000);
+                    emitter.send(SseEmitter.event().name("ping").data("heartbeat"));
+                }
+            } catch (Exception e) {
+                clients.remove(bruker);
+            }
+        }).start();
 
         // Remove emitter if connection is closed
         emitter.onCompletion(() -> clients.remove(bruker));
@@ -174,6 +222,59 @@ public class SpillController {
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().name("move").data(move));
+            } catch (IOException e) {
+                clients.remove(bruker);
+            }
+        }
+    }
+
+    @GetMapping("/users/online")
+    public ResponseEntity<List<String>> getOnlineUsers(HttpSession session) {
+        String self = (String) session.getAttribute("bruker");
+        if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(clients.keySet().stream()
+                .filter(u -> !u.equals(self))
+                .collect(java.util.stream.Collectors.toList()));
+    }
+
+    @PostMapping("/challenge")
+    public ResponseEntity<String> challengeUser(@RequestParam String opponent, HttpSession session) {
+        String self = (String) session.getAttribute("bruker");
+        if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
+        SseEmitter emitter = clients.get(opponent);
+        if (emitter == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Opponent not online");
+        
+        try {
+            emitter.send(SseEmitter.event().name("challenge").data(self));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send challenge");
+        }
+        
+        return ResponseEntity.ok("Challenge sent");
+    }
+
+    @PostMapping("/challenge/accept")
+    public ResponseEntity<String> acceptChallenge(@RequestParam String opponent, HttpSession session) {
+        String self = (String) session.getAttribute("bruker");
+        if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
+        PvPMatch match = new PvPMatch(opponent, self); // Challenger is White
+        activePvPMatches.put(self, match);
+        activePvPMatches.put(opponent, match);
+        
+        // Notify both that game started
+        notifyUser(self, "game_started", "black");
+        notifyUser(opponent, "game_started", "white");
+        
+        return ResponseEntity.ok("Game started");
+    }
+
+    private void notifyUser(String bruker, String eventName, String data) {
+        SseEmitter emitter = clients.get(bruker);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name(eventName).data(data));
             } catch (IOException e) {
                 clients.remove(bruker);
             }

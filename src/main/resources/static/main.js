@@ -523,6 +523,7 @@ function initSSE() {
 
     evtSource.onopen = () => {
         console.log('SSE connection established');
+        refreshOnlineUsers();
     };
 
     evtSource.onerror = (err) => {
@@ -545,6 +546,54 @@ function initSSE() {
             }
         }
     });
+
+    evtSource.addEventListener('challenge', (event) => {
+        const challenger = event.data;
+        showChallengeNotification(challenger);
+    });
+
+    evtSource.addEventListener('game_started', (event) => {
+        const orientation = event.data;
+        startPvPGame(orientation);
+    });
+}
+
+function showChallengeNotification(challenger) {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <div class="toast-header">New Challenge!</div>
+        <div class="toast-body"><strong>${challenger}</strong> has challenged you to a game.</div>
+        <div class="toast-actions">
+            <button class="btn-accept" onclick="acceptChallenge('${challenger}', this)">Accept</button>
+            <button class="btn-decline" onclick="this.parentElement.parentElement.remove()">Decline</button>
+        </div>
+    `;
+    container.appendChild(toast);
+
+    // Auto-remove after 20 seconds
+    setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+    }, 20000);
+}
+
+function acceptChallenge(challenger, buttonEl) {
+    const formData = new URLSearchParams();
+    formData.append('opponent', challenger);
+    
+    fetch('/challenge/accept', {
+        method: 'POST',
+        body: formData
+    }).then(res => {
+        if (!res.ok) {
+            alert("Failed to accept challenge. Maybe it expired?");
+        }
+        // Remove the toast
+        buttonEl.closest('.toast').remove();
+    });
 }
 
 
@@ -558,3 +607,54 @@ window.addEventListener('load', () => {
         updateUIState(false);
     }
 });
+
+function refreshOnlineUsers() {
+    fetch('/users/online')
+        .then(res => res.json())
+        .then(users => {
+            const container = document.getElementById('online-users');
+            if (!container) return;
+            container.innerHTML = '';
+            if (users.length === 0) {
+                container.innerHTML = '<li>No other users online</li>';
+            } else {
+                users.forEach(user => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '5px';
+                    li.innerHTML = `${user} <button onclick="challenge('${user}')" style="padding:2px 5px; font-size:12px;">Challenge</button>`;
+                    container.appendChild(li);
+                });
+            }
+        });
+}
+
+function challenge(user) {
+    const formData = new URLSearchParams();
+    formData.append('opponent', user);
+    fetch('/challenge', {
+        method: 'POST',
+        body: formData
+    }).then(res => res.text()).then(data => {
+        const output = document.getElementById('output');
+        if (output) output.innerText = "Challenge sent to " + user + "... waiting for response.";
+    });
+}
+
+function startPvPGame(orientation) {
+    updateUIState(true);
+    game.reset();
+    if (board) {
+        board.destroy();
+    }
+    
+    board = Chessboard('board', {
+        draggable: true,
+        position: 'start',
+        orientation: orientation,
+        onDrop: onDrop,
+        pieceTheme: '/img/chesspieces/wikipedia/{piece}.png'
+    });
+    
+    const output = document.getElementById('output');
+    if (output) output.innerText = "PvP Game started! You are " + orientation;
+}

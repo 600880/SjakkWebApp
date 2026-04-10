@@ -658,3 +658,19 @@ function startPvPGame(orientation) {
     const output = document.getElementById('output');
     if (output) output.innerText = "PvP Game started! You are " + orientation;
 }
+
+function askAI() {
+    const output = document.getElementById('output');
+    if (output) output.innerText = "AI is thinking...";
+
+    fetch('/ask-ai', {
+        method: 'POST'
+    })
+    .then(res => res.text())
+    .then(data => {
+        if (output) output.innerText = data;
+    })
+    .catch(err => {
+        if (output) output.innerText = "AI Error: " + err;
+    });
+}

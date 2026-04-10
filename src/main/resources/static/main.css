@@ -185,11 +185,21 @@ header button:hover {
 
 /* ===== Play Section ===== */
 .play-section {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.game-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 .controls-panel {
@@ -197,9 +207,7 @@ header button:hover {
     border: 1px solid #ddd;
     padding: 20px;
     border-radius: 8px;
-    width: 100%;
-    max-width: 500px;
-    margin-bottom: 20px;
+    width: 350px; /* Fixed width for consistency */
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -220,7 +228,7 @@ header button:hover {
 
 .control-group select {
     margin: 0;
-    max-width: 200px;
+    max-width: 160px;
 }
 
 .button-group {
@@ -232,15 +240,15 @@ header button:hover {
 
 .button-group button {
     width: auto;
-    padding: 10px 24px;
+    padding: 10px 16px;
     margin: 0;
     flex: 1;
+    font-size: 13px;
 }
 
 #board {
-    width: 100%;
-    max-width: 500px;
-    margin: 20px auto;
+    width: 500px; /* Fixed width for side-by-side */
+    margin: 0;
     border: 3px solid #2c6e49;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -252,13 +260,31 @@ header button:hover {
     padding: 16px;
     border-radius: 4px;
     width: 100%;
-    max-width: 500px;
+    max-width: 880px; /* Aligned with board + gap + panel roughly */
     min-height: 60px;
     white-space: pre-wrap;
     font-family: 'Courier New', monospace;
     font-size: 13px;
     text-align: center;
     color: #666;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 950px) {
+    .game-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    #board {
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    .controls-panel {
+        width: 100%;
+        max-width: 500px;
+    }
 }
 
 /* ===== Archive Section ===== */

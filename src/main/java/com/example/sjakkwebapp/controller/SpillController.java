@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.example.sjakkwebapp.model.Parti;
 import com.example.sjakkwebapp.service.PartiService;
@@ -35,6 +42,9 @@ public class SpillController {
 	
 	@Autowired 
     private PartiService s;
+
+    @Value("${azure.ai.key:}")
+    private String azureAiKey;
 	
     @GetMapping("/spill")
     public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -278,6 +288,56 @@ public class SpillController {
             } catch (IOException e) {
                 clients.remove(bruker);
             }
+        }
+    }
+
+    @PostMapping("/ask-ai")
+    public ResponseEntity<String> askAI(HttpSession session) {
+        if (!LoginUtil.erBrukerInnlogget(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        }
+
+        // Azure AI Details (Provided by user)
+        String url = "https://dstub-8074-resource.services.ai.azure.com/api/projects/dstub-8074/applications/agent-torr/protocols/openai/responses?api-version=2025-11-15-preview";
+        
+        // Use the injected key from application.properties, fallback to env or hardcoded for safety
+        String apiKey = azureAiKey;
+        if (apiKey == null || apiKey.isEmpty()) {
+            apiKey = System.getenv("AZURE_AI_KEY");
+        }
+
+        HttpClient client = HttpClient.newHttpClient();
+        
+        // Updated for Azure AI Responses API
+        String json = "{" +
+                "\"input\": [" +
+                "  {\"role\": \"user\", \"content\": \"hello\"}" +
+                "]" +
+                "}";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("api-key", apiKey) // Azure typically uses api-key
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() == 200) {
+                // Extract "text" content using regex
+                Pattern pattern = Pattern.compile("\"text\":\\s*\"(.*?)\"");
+                Matcher matcher = pattern.matcher(response.body());
+                if (matcher.find()) {
+                    return ResponseEntity.ok(matcher.group(1));
+                }
+                return ResponseEntity.ok(response.body());
+            } else {
+                return ResponseEntity.status(response.statusCode()).body("Error from Azure AI: " + response.body());
+            }
+        } catch (IOException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Request failed: " + e.getMessage());
         }
     }
     

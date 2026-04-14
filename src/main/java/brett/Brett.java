@@ -44,9 +44,10 @@ public class Brett {
 	
 	/**
 	 * Representerer stilling som FEN-streng.
+	 * @param hvitITrekket det er hvit sitt trekk
 	 * @return FEN-stilling
 	 */
-	public String stillingTilFEN() {
+	public String stillingTilFEN(boolean hvitITrekket) {
 		StringBuilder fen = new StringBuilder();
 		
 		// 1. Piece placement
@@ -71,6 +72,9 @@ public class Brett {
 				fen.append('/');
 			}
 		}
+		
+		// 2. Active color
+		fen.append(" ").append(hvitITrekket ? 'w' : 'b');
 		
 		return fen.toString();
 	}

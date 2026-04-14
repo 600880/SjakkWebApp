@@ -305,12 +305,23 @@ public class SpillController {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
-                // Simplified extraction, assuming standard "best_move" field
-                Pattern pattern = Pattern.compile("\"best_move\":\\s*\"(.*?)\"");
-                Matcher matcher = pattern.matcher(response.body());
-                if (matcher.find()) {
-                    return matcher.group(1);
+                String body = response.body();
+                String move = "not found";
+                String score = "unknown";
+
+                Pattern movePattern = Pattern.compile("\"best_move\":\\s*\"(.*?)\"");
+                Matcher moveMatcher = movePattern.matcher(body);
+                if (moveMatcher.find()) {
+                    move = moveMatcher.group(1);
                 }
+
+                Pattern scorePattern = Pattern.compile("\"score_cp\":\\s*(-?\\d+)");
+                Matcher scoreMatcher = scorePattern.matcher(body);
+                if (scoreMatcher.find()) {
+                    score = scoreMatcher.group(1);
+                }
+
+                return move + " (Score CP: " + score + ")";
             }
         } catch (IOException | InterruptedException e) {
             System.err.println("Stockfish request failed: " + e.getMessage());
@@ -335,7 +346,9 @@ public class SpillController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
         }
 
-        String fen = parti.getBrett().stillingTilFEN();
+        spill.Trekk siste = parti.getSisteTrekk();
+        boolean hvitITrekket = (siste == null) || (siste.getBrikke().getFarge() == brikke.Farge.SVART);
+        String fen = parti.getBrett().stillingTilFEN(hvitITrekket);
         String bestMove = getBestMoveFromStockfish(fen);
 
         // Azure AI Details (Provided by user)

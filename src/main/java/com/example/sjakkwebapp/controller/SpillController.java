@@ -291,11 +291,52 @@ public class SpillController {
         }
     }
 
+    private String getBestMoveFromStockfish(String fen) {
+        String url = "https://stockfish-app.happyfield-52deb28b.eastus.azurecontainerapps.io/analyze";
+        String jsonPayload = "{\"fen\": \"" + fen + "\", \"depth\": 15}";
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                // Simplified extraction, assuming standard "best_move" field
+                Pattern pattern = Pattern.compile("\"best_move\":\\s*\"(.*?)\"");
+                Matcher matcher = pattern.matcher(response.body());
+                if (matcher.find()) {
+                    return matcher.group(1);
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Stockfish request failed: " + e.getMessage());
+        }
+        return "not found";
+    }
+
     @PostMapping("/ask-ai")
     public ResponseEntity<String> askAI(HttpSession session) {
         if (!LoginUtil.erBrukerInnlogget(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
+
+        String bruker = (String) session.getAttribute("bruker");
+        spill.Parti parti = (spill.Parti) session.getAttribute("parti");
+        PvPMatch match = activePvPMatches.get(bruker);
+        if (match != null) {
+            parti = match.parti;
+        }
+
+        if (parti == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
+        }
+
+        String fen = parti.getBrett().stillingTilFEN();
+        String bestMove = getBestMoveFromStockfish(fen);
 
         // Azure AI Details (Provided by user)
         String url = "https://dstub-8074-resource.services.ai.azure.com/api/projects/dstub-8074/applications/agent-torr/protocols/openai/responses?api-version=2025-11-15-preview";
@@ -308,10 +349,11 @@ public class SpillController {
 
         HttpClient client = HttpClient.newHttpClient();
         
-        // Updated for Azure AI Responses API
+        // Updated for Azure AI Responses API, now sending FEN and best move
+        String prompt = "FEN: " + fen + ". Stockfish's best move: " + bestMove;
         String json = "{" +
                 "\"input\": [" +
-                "  {\"role\": \"user\", \"content\": \"hello\"}" +
+                "  {\"role\": \"user\", \"content\": \"" + prompt + "\"}" +
                 "]" +
                 "}";
 

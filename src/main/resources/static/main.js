@@ -60,11 +60,13 @@ function updateUIState(running) {
     const simulateBtn = document.getElementById('simulateBtn');
     const resetBtn = document.getElementById('resetBtn');
     const cpuSelector = document.getElementById('cpuLevel');
+    const askAiBtn = document.getElementById('askAiBtn');
 
     if (playBtn) playBtn.disabled = running;
     if (simulateBtn) simulateBtn.disabled = running;
     if (cpuSelector) cpuSelector.disabled = running;
     if (resetBtn) resetBtn.disabled = !running;
+    if (askAiBtn) askAiBtn.disabled = !running;
 }
 
 function startInteractive() {
@@ -120,8 +122,6 @@ function resetGame() {
     game.reset();
     if (board) {
         board.position('start');
-        board.destroy();
-        initPlayBoard(true);
     }
     const output = document.getElementById('output');
     if (output) output.innerText = 'Choose a mode to start';

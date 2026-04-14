@@ -43,6 +43,39 @@ public class Brett {
 	}
 	
 	/**
+	 * Representerer stilling som FEN-streng.
+	 * @return FEN-stilling
+	 */
+	public String stillingTilFEN() {
+		StringBuilder fen = new StringBuilder();
+		
+		// 1. Piece placement
+		for (int y = 8; y >= 1; y--) {
+			int tommeRuter = 0;
+			for (int x = 1; x <= 8; x++) {
+				Rute rute = finnRute(x, y);
+				if (!rute.harBrikke()) {
+					tommeRuter++;
+				} else {
+					if (tommeRuter > 0) {
+						fen.append(tommeRuter);
+						tommeRuter = 0;
+					}
+					fen.append(rute.getBrikke().tilPGN());
+				}
+			}
+			if (tommeRuter > 0) {
+				fen.append(tommeRuter);
+			}
+			if (y > 1) {
+				fen.append('/');
+			}
+		}
+		
+		return fen.toString();
+	}
+	
+	/**
 	 * Representerer stilling som tekststreng.
 	 * @return stilling
 	 */

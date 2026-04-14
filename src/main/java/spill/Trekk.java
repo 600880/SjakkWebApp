@@ -66,7 +66,7 @@ public class Trekk {
 	
 	@Override
 	public String toString() {
-		return brikke.toString() + startPos.toString() + "->" + nyPos.toString();
+		return startPos.toString() + "-" + nyPos.toString();
 	}
 
 }

@@ -191,8 +191,7 @@ public class Parti {
 		leggTilPNG(trekk.toPGN());
 
 		// Spill CPU-trekk i frontend.
-		String trekkStr = trekk.getStartPos().toString() + "-" + trekk.getNyPos().toString();
-		SpillController.makeAIMove(bruker, trekkStr);
+		SpillController.makeAIMove(bruker, trekk.toString());
 
 		if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove(bruker, 
 			farge == Farge.HVIT ? "h1-f1" : "h8-f8"

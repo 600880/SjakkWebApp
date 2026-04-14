@@ -668,7 +668,17 @@ function askAI() {
     })
     .then(res => res.text())
     .then(data => {
-        if (output) output.innerText = data;
+        if (output) {
+            // 1. Convert literal \n to <br>
+            // 2. Convert literal \uXXXX unicode escapes to actual characters
+            // 3. Convert **bold** to <strong>
+            let formatted = data
+                .replace(/\\n/g, '<br>')
+                .replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => String.fromCharCode(parseInt(grp, 16)))
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            output.innerHTML = formatted;
+        }
     })
     .catch(err => {
         if (output) output.innerText = "AI Error: " + err;

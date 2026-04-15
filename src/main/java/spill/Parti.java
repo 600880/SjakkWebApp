@@ -14,8 +14,6 @@ import brikke.Taarn;
 import brikke.Farge;
 import brikke.Hest;
 
-import com.example.sjakkwebapp.controller.SpillController;
-
 public class Parti {
 	
 	private final Brett brett = new Brett();
@@ -29,6 +27,11 @@ public class Parti {
 	private String PNG;
 	private int trekknummer;
 	private String bruker;
+	private MoveNotifier moveNotifier;
+
+	public void setMoveNotifier(MoveNotifier moveNotifier) {
+		this.moveNotifier = moveNotifier;
+	}
 
 	public void setBruker(String bruker) {
 		this.bruker = bruker;
@@ -191,14 +194,9 @@ public class Parti {
 		leggTilPNG(trekk.toPGN());
 
 		// Spill CPU-trekk i frontend.
-		SpillController.makeAIMove(bruker, trekk.toString());
-
-		if (trekk.toPGN().equals("O-O")) SpillController.makeAIMove(bruker, 
-			farge == Farge.HVIT ? "h1-f1" : "h8-f8"
-		);
-		else if (trekk.toPGN().equals("O-O-O")) SpillController.makeAIMove(bruker, 
-			farge == Farge.HVIT ? "a1-d1" : "a8-d8"
-		);
+		if (moveNotifier != null) {
+			moveNotifier.notifyMove(bruker, trekk.toString());
+		}
 
 		return true;
 			

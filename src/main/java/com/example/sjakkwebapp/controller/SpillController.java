@@ -27,6 +27,9 @@ import java.util.regex.Pattern;
 
 import com.example.sjakkwebapp.model.Parti;
 import com.example.sjakkwebapp.service.PartiService;
+import com.example.sjakkwebapp.service.SSEService;
+import com.example.sjakkwebapp.service.AIService;
+import com.example.sjakkwebapp.service.GameService;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 import brikke.Farge;
@@ -43,6 +46,15 @@ public class SpillController {
 	@Autowired 
     private PartiService s;
 
+    @Autowired
+    private SSEService sseService;
+
+    @Autowired
+    private AIService aiService;
+
+    @Autowired
+    private GameService gameService;
+
     @Value("${azure.ai.key:}")
     private String azureAiKey;
 	
@@ -58,6 +70,7 @@ public class SpillController {
 
     	spill.Parti parti = new spill.Parti();
         parti.setBruker(spillerHvit);
+        parti.setMoveNotifier(sseService);
         // Interactive: Human is White, CPU is Black
         Spiller hvit = new Spiller(spillerHvit, Farge.HVIT, dybde, false, parti);
         Spiller svart = new Spiller(spillerSvart, Farge.SVART, dybde, true, parti);
@@ -75,15 +88,17 @@ public class SpillController {
         if (!LoginUtil.erBrukerInnlogget(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
-    	
-    	String spillerHvit = (String) session.getAttribute("bruker");
-    	String spillerSvart = "cpu@cpu.no";
 
-    	spill.Parti parti = new spill.Parti();
-        parti.setBruker(spillerHvit);
+        spill.Parti parti = new spill.Parti();
+
         // Simulation: Both are CPU
         Spiller hvit = new Spiller("CPU-White", Farge.HVIT, dybde, true, parti);
         Spiller svart = new Spiller("CPU-Black", Farge.SVART, dybde, true, parti);
+        String spillerHvit = (String) session.getAttribute("bruker");
+    	String spillerSvart = "cpu@cpu.no";
+
+        parti.setBruker(spillerHvit);
+        parti.setMoveNotifier(sseService);
         
         // Run simulation in a separate thread so it doesn't block
         new Thread(() -> {
@@ -101,60 +116,16 @@ public class SpillController {
     @PostMapping("/move")
     public ResponseEntity<String> userMove(@RequestParam String from, @RequestParam String to, HttpSession session) {
         String bruker = (String) session.getAttribute("bruker");
-        spill.Parti parti = (spill.Parti) session.getAttribute("parti");
+        spill.Parti sessionParti = (spill.Parti) session.getAttribute("parti");
+        Spiller cpuSvart = (Spiller) session.getAttribute("svart");
         
-        PvPMatch match = activePvPMatches.get(bruker);
-        boolean isPvP = (match != null);
-        if (isPvP) {
-            parti = match.parti;
-        }
-
-        if (parti == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
-        }
-
-        // Determine whose turn it is
-        Trekk siste = parti.getSisteTrekk();
-        Farge currentTurn = (siste == null) ? Farge.HVIT : (siste.getBrikke().getFarge() == Farge.HVIT ? Farge.SVART : Farge.HVIT);
-
-        // Verify it's the user's turn and they own the color
-        if (isPvP) {
-            boolean isWhite = bruker.equals(match.hvit);
-            if (isWhite && currentTurn != Farge.HVIT) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (Black's turn)");
-            if (!isWhite && currentTurn != Farge.SVART) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (White's turn)");
-        } else {
-            if (currentTurn != Farge.HVIT) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not your turn (CPU's turn)");
-        }
-
-        int fx = util.Utils.charToInt(from.charAt(0));
-        int fy = Character.getNumericValue(from.charAt(1));
-        Brikke brikke = parti.getBrett().finnRute(fx, fy).getBrikke();
+        String result = gameService.handleMove(bruker, from, to, sessionParti, cpuSvart);
         
-        if (brikke != null && brikke.getFarge() == currentTurn) {
-            int tx = util.Utils.charToInt(to.charAt(0));
-            int ty = Character.getNumericValue(to.charAt(1));
-            Rute tilRute = parti.getBrett().finnRute(tx, ty);
-            
-            // Execute move
-            brikke.flytt(tilRute);
-            
-            if (isPvP) {
-                // Notify opponent
-                String opponent = bruker.equals(match.hvit) ? match.svart : match.hvit;
-                notifyUser(opponent, "move", from + "-" + to);
-            } else {
-                // CPU Counter-move
-                Spiller svart = (Spiller) session.getAttribute("svart");
-                final spill.Parti cpuParti = parti;
-                new Thread(() -> {
-                    cpuParti.spillTrekk(svart, Farge.SVART);
-                }).start();
-            }
-
+        if ("OK".equals(result)) {
             return ResponseEntity.ok("Move accepted");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid move");
     }
     
     @GetMapping("/minePartier")
@@ -183,68 +154,25 @@ public class SpillController {
             .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
     
-    // Keep track of all clients by username
-    private static final java.util.Map<String, SseEmitter> clients = new java.util.concurrent.ConcurrentHashMap<>();
-    private static final java.util.Map<String, PvPMatch> activePvPMatches = new java.util.concurrent.ConcurrentHashMap<>();
-
-    private static class PvPMatch {
-        spill.Parti parti;
-        String hvit;
-        String svart;
-        PvPMatch(String hvit, String svart) {
-            this.hvit = hvit;
-            this.svart = svart;
-            this.parti = new spill.Parti();
-        }
-    }
-
     // Endpoint for clients to connect
     @GetMapping("/moves/stream")
     public SseEmitter streamMoves(HttpSession session) {
         String bruker = (String) session.getAttribute("bruker");
         if (bruker == null) return null;
 
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // no timeout
-        clients.put(bruker, emitter);
-
-        // Send a heartbeat every 20 seconds to keep the connection alive
-        new Thread(() -> {
-            try {
-                while (clients.containsKey(bruker)) {
-                    Thread.sleep(20000);
-                    emitter.send(SseEmitter.event().name("ping").data("heartbeat"));
-                }
-            } catch (Exception e) {
-                clients.remove(bruker);
-            }
-        }).start();
-
-        // Remove emitter if connection is closed
-        emitter.onCompletion(() -> clients.remove(bruker));
-        emitter.onTimeout(() -> clients.remove(bruker));
-        emitter.onError((e) -> clients.remove(bruker));
-
-        return emitter;
+        return sseService.createEmitter(bruker);
     }
     
-    public static void makeAIMove(String bruker, String move) {
-        SseEmitter emitter = clients.get(bruker);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event().name("move").data(move));
-            } catch (IOException e) {
-                clients.remove(bruker);
-            }
-        }
-    }
-
     @GetMapping("/users/online")
     public ResponseEntity<List<String>> getOnlineUsers(HttpSession session) {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return ResponseEntity.ok(clients.keySet().stream()
-                .filter(u -> !u.equals(self))
-                .collect(java.util.stream.Collectors.toList()));
+        
+        java.util.List<String> online = new java.util.ArrayList<>();
+        sseService.getOnlineUsers().forEach(u -> {
+            if (!u.equals(self)) online.add(u);
+        });
+        return ResponseEntity.ok(online);
     }
 
     @PostMapping("/challenge")
@@ -252,14 +180,9 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        SseEmitter emitter = clients.get(opponent);
-        if (emitter == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Opponent not online");
+        if (!sseService.isUserOnline(opponent)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Opponent not online");
         
-        try {
-            emitter.send(SseEmitter.event().name("challenge").data(self));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send challenge");
-        }
+        sseService.notifyUser(opponent, "challenge", self);
         
         return ResponseEntity.ok("Challenge sent");
     }
@@ -269,64 +192,13 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        PvPMatch match = new PvPMatch(opponent, self); // Challenger is White
-        activePvPMatches.put(self, match);
-        activePvPMatches.put(opponent, match);
+        GameService.PvPMatch match = gameService.createMatch(opponent, self); // Challenger is White
         
         // Notify both that game started
-        notifyUser(self, "game_started", "black");
-        notifyUser(opponent, "game_started", "white");
+        sseService.notifyUser(self, "game_started", "black");
+        sseService.notifyUser(opponent, "game_started", "white");
         
         return ResponseEntity.ok("Game started");
-    }
-
-    private void notifyUser(String bruker, String eventName, String data) {
-        SseEmitter emitter = clients.get(bruker);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event().name(eventName).data(data));
-            } catch (IOException e) {
-                clients.remove(bruker);
-            }
-        }
-    }
-
-    private String getBestMoveFromStockfish(String fen) {
-        String url = "https://stockfish-app.happyfield-52deb28b.eastus.azurecontainerapps.io/analyze";
-        String jsonPayload = "{\"fen\": \"" + fen + "\", \"depth\": 15}";
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .build();
-
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                String body = response.body();
-                String move = "not found";
-                String score = "unknown";
-
-                Pattern movePattern = Pattern.compile("\"best_move\":\\s*\"(.*?)\"");
-                Matcher moveMatcher = movePattern.matcher(body);
-                if (moveMatcher.find()) {
-                    move = moveMatcher.group(1);
-                }
-
-                Pattern scorePattern = Pattern.compile("\"score_cp\":\\s*(-?\\d+)");
-                Matcher scoreMatcher = scorePattern.matcher(body);
-                if (scoreMatcher.find()) {
-                    score = scoreMatcher.group(1);
-                }
-
-                return move + " (Score CP: " + score + ")";
-            }
-        } catch (IOException | InterruptedException e) {
-            System.err.println("Stockfish request failed: " + e.getMessage());
-        }
-        return "not found";
     }
 
     @PostMapping("/ask-ai")
@@ -337,7 +209,7 @@ public class SpillController {
 
         String bruker = (String) session.getAttribute("bruker");
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        PvPMatch match = activePvPMatches.get(bruker);
+        GameService.PvPMatch match = gameService.getMatch(bruker);
         if (match != null) {
             parti = match.parti;
         }
@@ -349,48 +221,11 @@ public class SpillController {
         spill.Trekk siste = parti.getSisteTrekk();
         boolean hvitITrekket = (siste == null) || (siste.getBrikke().getFarge() == brikke.Farge.SVART);
         String fen = parti.getBrett().stillingTilFEN(hvitITrekket);
-        String bestMove = getBestMoveFromStockfish(fen);
-
-        // Azure AI Details (Provided by user)
-        String url = "https://dstub-8074-resource.services.ai.azure.com/api/projects/dstub-8074/applications/agent-torr/protocols/openai/responses?api-version=2025-11-15-preview";
-        
-        // Use the injected key from application.properties, fallback to env or hardcoded for safety
-        String apiKey = azureAiKey;
-        if (apiKey == null || apiKey.isEmpty()) {
-            apiKey = System.getenv("AZURE_AI_KEY");
-        }
-
-        HttpClient client = HttpClient.newHttpClient();
-        
-        // Updated for Azure AI Responses API, now sending FEN and best move
-        String prompt = "FEN: " + fen + ". Stockfish's best move: " + bestMove;
-        String json = "{" +
-                "\"input\": [" +
-                "  {\"role\": \"user\", \"content\": \"" + prompt + "\"}" +
-                "]" +
-                "}";
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json")
-                .header("api-key", apiKey) // Azure typically uses api-key
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
+        String bestMove = aiService.getBestMoveFromStockfish(fen);
 
         try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            
-            if (response.statusCode() == 200) {
-                // Extract "text" content using regex
-                Pattern pattern = Pattern.compile("\"text\":\\s*\"(.*?)\"");
-                Matcher matcher = pattern.matcher(response.body());
-                if (matcher.find()) {
-                    return ResponseEntity.ok(matcher.group(1));
-                }
-                return ResponseEntity.ok(response.body());
-            } else {
-                return ResponseEntity.status(response.statusCode()).body("Error from Azure AI: " + response.body());
-            }
+            String aiResponse = aiService.askAzureAI(fen, bestMove);
+            return ResponseEntity.ok(aiResponse);
         } catch (IOException | InterruptedException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Request failed: " + e.getMessage());
         }

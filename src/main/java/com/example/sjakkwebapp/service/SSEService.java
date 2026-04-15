@@ -6,6 +6,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import spill.MoveNotifier;
 
@@ -57,8 +59,8 @@ public class SSEService implements MoveNotifier {
         notifyMove(bruker, move);
     }
 
-    public Iterable<String> getOnlineUsers() {
-        return clients.keySet();
+    public List<String> getOnlineUsers() {
+        return new ArrayList<>(clients.keySet());
     }
 
     public boolean isUserOnline(String bruker) {

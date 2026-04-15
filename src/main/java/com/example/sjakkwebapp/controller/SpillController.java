@@ -3,29 +3,19 @@ package com.example.sjakkwebapp.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.ArrayList;
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.example.sjakkwebapp.model.Parti;
 import com.example.sjakkwebapp.service.PartiService;
 import com.example.sjakkwebapp.service.SSEService;
 import com.example.sjakkwebapp.service.AIService;
@@ -33,12 +23,8 @@ import com.example.sjakkwebapp.service.GameService;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 import brikke.Farge;
-import brikke.Brikke;
-import brett.Rute;
-import spill.Trekk;
 import jakarta.servlet.http.HttpSession;
 import spill.Spiller;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 public class SpillController {
@@ -54,9 +40,6 @@ public class SpillController {
 
     @Autowired
     private GameService gameService;
-
-    @Value("${azure.ai.key:}")
-    private String azureAiKey;
 	
     @GetMapping("/spill")
     public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -128,37 +111,11 @@ public class SpillController {
         }
     }
     
-    @GetMapping("/minePartier")
-    public ResponseEntity<List<Parti>> minePartier(HttpSession session) {
-        
-        if (!LoginUtil.erBrukerInnlogget(session)) {
-            // Return 401 Unauthorized
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-        
-        String bruker = (String) session.getAttribute("bruker");
-        List<Parti> partier = s.finnPartierForBruker(bruker);
-        
-        return ResponseEntity.ok(partier);
-    }
-    
-    @GetMapping("/partier/{id}")
-    public ResponseEntity<Parti> getParti(@PathVariable int id, HttpSession session) {
-        
-        if (!LoginUtil.erBrukerInnlogget(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-        
-        return s.finnPartiById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
-    }
-    
     // Endpoint for clients to connect
     @GetMapping("/moves/stream")
     public SseEmitter streamMoves(HttpSession session) {
         String bruker = (String) session.getAttribute("bruker");
-        if (bruker == null) return null;
+        if (bruker == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 
         return sseService.createEmitter(bruker);
     }
@@ -167,12 +124,8 @@ public class SpillController {
     public ResponseEntity<List<String>> getOnlineUsers(HttpSession session) {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        
-        java.util.List<String> online = new java.util.ArrayList<>();
-        sseService.getOnlineUsers().forEach(u -> {
-            if (!u.equals(self)) online.add(u);
-        });
-        return ResponseEntity.ok(online);
+
+        return ResponseEntity.ok(sseService.getOnlineUsers().stream().filter(u -> !u.equals(self)).toList());
     }
 
     @PostMapping("/challenge")

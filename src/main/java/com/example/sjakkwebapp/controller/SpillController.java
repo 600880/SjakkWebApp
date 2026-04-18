@@ -19,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.sjakkwebapp.service.PartiService;
 import com.example.sjakkwebapp.service.SSEService;
 import com.example.sjakkwebapp.service.AIService;
-import com.example.sjakkwebapp.service.GameService;
+import com.example.sjakkwebapp.service.SpillService;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 import brikke.Farge;
@@ -39,7 +39,7 @@ public class SpillController {
     private AIService aiService;
 
     @Autowired
-    private GameService gameService;
+    private SpillService spillService;
 	
     @GetMapping("/spill")
     public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -102,7 +102,7 @@ public class SpillController {
         spill.Parti sessionParti = (spill.Parti) session.getAttribute("parti");
         Spiller cpuSvart = (Spiller) session.getAttribute("svart");
         
-        String result = gameService.handleMove(bruker, from, to, sessionParti, cpuSvart);
+        String result = spillService.handleMove(bruker, from, to, sessionParti, cpuSvart);
         
         if ("OK".equals(result)) {
             return ResponseEntity.ok("Move accepted");
@@ -145,7 +145,7 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        GameService.PvPMatch match = gameService.createMatch(opponent, self); // Challenger is White
+        SpillService.PvPMatch match = spillService.createMatch(opponent, self); // Challenger is White
         
         // Notify both that game started
         sseService.notifyUser(self, "game_started", "black");
@@ -162,7 +162,7 @@ public class SpillController {
 
         String bruker = (String) session.getAttribute("bruker");
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        GameService.PvPMatch match = gameService.getMatch(bruker);
+        SpillService.PvPMatch match = spillService.getMatch(bruker);
         if (match != null) {
             parti = match.parti;
         }

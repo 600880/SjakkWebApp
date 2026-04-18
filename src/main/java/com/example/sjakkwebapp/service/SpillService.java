@@ -12,7 +12,7 @@ import spill.Spiller;
 import spill.Parti;
 
 @Service
-public class GameService {
+public class SpillService {
 
     @Autowired
     private SSEService sseService;

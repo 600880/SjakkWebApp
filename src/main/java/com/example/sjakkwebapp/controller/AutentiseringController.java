@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.sjakkwebapp.util.ValidateUtil;
 import com.example.sjakkwebapp.service.BrukerService;
+import com.example.sjakkwebapp.service.SpillService;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 
@@ -24,6 +25,9 @@ public class AutentiseringController {
 	
 	@Autowired 
     private BrukerService s;
+
+    @Autowired
+    SpillService spillService;
 	
 	@GetMapping("/")
     public String index() {
@@ -55,6 +59,10 @@ public class AutentiseringController {
 	
 	@PostMapping("/logout")
 	public String loggUt(HttpSession session) {
+        String bruker = (String) session.getAttribute("bruker");
+        if (bruker != null) {
+            spillService.endMatch(bruker);
+        }
 		LoginUtil.loggUtBruker(session);
 		return "redirect:index";
 	}

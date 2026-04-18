@@ -174,7 +174,8 @@ public class SpillController {
         spill.Trekk siste = parti.getSisteTrekk();
         boolean hvitITrekket = (siste == null) || (siste.getBrikke().getFarge() == brikke.Farge.SVART);
         String fen = parti.getBrett().stillingTilFEN(hvitITrekket);
-        String bestMove = aiService.getBestMoveFromStockfish(fen);
+        // String bestMove = aiService.getBestMoveFromStockfish(fen);
+        String bestMove = "e2e4"; // For testing - The agent decides when to use the tool.
 
         try {
             String aiResponse = aiService.askAzureAI(fen, bestMove);

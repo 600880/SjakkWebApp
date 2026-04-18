@@ -64,7 +64,8 @@ public class AIService {
             apiKey = System.getenv("AZURE_AI_KEY");
         }
 
-        String prompt = "FEN: " + fen + ". Stockfish's best move: " + bestMove;
+        //String prompt = "FEN: " + fen + ". Stockfish's best move: " + bestMove;
+        String prompt = "FEN: " + fen; // For testing - The agent decides when to use the tool.
         String json = "{" +
                 "\"input\": [" +
                 "  {\"role\": \"user\", \"content\": \"" + prompt + "\"}" +

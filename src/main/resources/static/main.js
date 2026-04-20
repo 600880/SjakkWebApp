@@ -118,13 +118,17 @@ function startSimulation() {
 }
 
 function resetGame() {
-    updateUIState(false);
-    game.reset();
-    if (board) {
-        board.position('start');
-    }
-    const output = document.getElementById('output');
-    if (output) output.innerText = 'Choose a mode to start';
+    fetch('/abort', { method: 'POST' })
+        .then(() => {
+            updateUIState(false);
+            game.reset();
+            if (board) {
+                board.position('start');
+            }
+            const output = document.getElementById('output');
+            if (output) output.innerText = 'Choose a mode to start';
+        })
+        .catch(err => console.error('Error aborting game:', err));
 }
 
 function runProgram() {

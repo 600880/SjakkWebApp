@@ -18,5 +18,9 @@ public class SessionEventListener implements HttpSessionListener {
         if (bruker != null) {
             spillService.endMatch(bruker);
         }
+        spill.Parti parti = (spill.Parti) se.getSession().getAttribute("parti");
+        if (parti != null) {
+            parti.stop();
+        }
     }
 }

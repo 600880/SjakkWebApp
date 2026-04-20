@@ -28,6 +28,15 @@ public class Parti {
 	private int trekknummer;
 	private String bruker;
 	private MoveNotifier moveNotifier;
+	private volatile boolean aborted = false;
+
+	public void stop() {
+		this.aborted = true;
+	}
+
+	public boolean isAborted() {
+		return aborted;
+	}
 
 	public void setMoveNotifier(MoveNotifier moveNotifier) {
 		this.moveNotifier = moveNotifier;
@@ -166,11 +175,13 @@ public class Parti {
 		stillingerRepetert.clear();
 		PNG = "";		
 		trekknummer = 1;
+		aborted = false;
 
-		while (true) {
+		/*while (!aborted) {
 			if (!spillTrekk(hvit, Farge.HVIT)) break;
+			if (aborted) break;
 			if (!spillTrekk(svart, Farge.SVART)) break;
-		}
+		}*/
 		
 	}
 
@@ -181,6 +192,7 @@ public class Parti {
 	 * @return false hvis parti ferdig, true ellers
 	 */
 	public boolean spillTrekk(Spiller spiller, Farge farge) {
+		if (aborted) return false;
 		
 		for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
 		for (Brikke b : brikkerSvart) b.finnLovligeTrekk();

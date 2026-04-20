@@ -47,20 +47,20 @@ public class SpillController {
         if (!LoginUtil.erBrukerInnlogget(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
-    	
-    	String spillerHvit = (String) session.getAttribute("bruker");
-    	String spillerSvart = "cpu@cpu.no";
 
     	spill.Parti parti = new spill.Parti();
-        parti.setBruker(spillerHvit);
+        String bruker = (String) session.getAttribute("bruker");
+        parti.setBruker(bruker);
         parti.setMoveNotifier(sseService);
+
         // Interactive: Human is White, CPU is Black
-        Spiller hvit = new Spiller(spillerHvit, Farge.HVIT, dybde, false, parti);
-        Spiller svart = new Spiller(spillerSvart, Farge.SVART, dybde, true, parti);
+        Spiller hvit = new Spiller(bruker, Farge.HVIT, dybde, false, parti);
+        Spiller svart = new Spiller("cpu@cpu.no", Farge.SVART, dybde, true, parti);
+        parti.spill(hvit, svart);
         
+        // Game state is now in session attributes for move handling
         session.setAttribute("parti", parti);
-        session.setAttribute("hvit", hvit);
-        session.setAttribute("svart", svart);
+        session.setAttribute("CPU", svart);
 
         return ResponseEntity.ok("Interactive game initialized with depth " + dybde);
     }
@@ -73,21 +73,25 @@ public class SpillController {
         }
 
         spill.Parti parti = new spill.Parti();
+        String bruker = (String) session.getAttribute("bruker");
+        parti.setBruker(bruker);
+        parti.setMoveNotifier(sseService);
 
         // Simulation: Both are CPU
         Spiller hvit = new Spiller("CPU-White", Farge.HVIT, dybde, true, parti);
         Spiller svart = new Spiller("CPU-Black", Farge.SVART, dybde, true, parti);
-        String spillerHvit = (String) session.getAttribute("bruker");
-    	String spillerSvart = "cpu@cpu.no";
-
-        parti.setBruker(spillerHvit);
-        parti.setMoveNotifier(sseService);
+        parti.spill(hvit, svart);
         
         // Run simulation in a separate thread so it doesn't block
         new Thread(() -> {
             try {
-                parti.spill(hvit, svart);
-                s.leggTilParti(spillerHvit, spillerSvart, parti.getPNG());
+                while (true) {
+                    if (!parti.spillTrekk(hvit, Farge.HVIT)) break;
+			        if (!parti.spillTrekk(svart, Farge.SVART)) break;
+                }
+                if (!parti.isAborted()) {
+                    s.leggTilParti(bruker, "cpu@cpu.no", parti.getPNG());
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -98,8 +102,9 @@ public class SpillController {
 
     @PostMapping("/move")
     public ResponseEntity<String> userMove(@RequestParam String from, @RequestParam String to, HttpSession session) {
-        String bruker = (String) session.getAttribute("bruker");
+        
         spill.Parti sessionParti = (spill.Parti) session.getAttribute("parti");
+        String bruker = (String) session.getAttribute("bruker");
         Spiller cpuSvart = (Spiller) session.getAttribute("svart");
         
         String result = spillService.handleMove(bruker, from, to, sessionParti, cpuSvart);
@@ -152,6 +157,27 @@ public class SpillController {
         sseService.notifyUser(opponent, "game_started", "white");
         
         return ResponseEntity.ok("Game started");
+    }
+
+    @PostMapping("/abort")
+    public ResponseEntity<String> abortGame(HttpSession session) {
+        if (!LoginUtil.erBrukerInnlogget(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        }
+
+        spill.Parti parti = (spill.Parti) session.getAttribute("parti");
+        if (parti != null) {
+            parti.stop();
+        }
+        
+        // Also check if there's a PvP match to stop
+        String bruker = (String) session.getAttribute("bruker");
+        SpillService.PvPMatch match = spillService.getMatch(bruker);
+        if (match != null && match.parti != null) {
+            match.parti.stop();
+        }
+
+        return ResponseEntity.ok("Game aborted");
     }
 
     @PostMapping("/ask-ai")

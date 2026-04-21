@@ -26,6 +26,7 @@ public class Parti {
 	private final static List<String> stillingerRepetert = new ArrayList<String>();
 	private String PNG;
 	private int trekknummer;
+
 	private String bruker;
 	private MoveNotifier moveNotifier;
 	private volatile boolean aborted = false;
@@ -165,7 +166,7 @@ public class Parti {
 	}
 
 	/**
-	 * Nye trekk spilles helt til en av betingelsene for at spillet er ferdig er oppfylt.
+	 * Initierer et nytt parti.
 	 * @param hvit spiller
 	 * @param svart spiller
 	 */
@@ -176,12 +177,6 @@ public class Parti {
 		PNG = "";		
 		trekknummer = 1;
 		aborted = false;
-
-		/*while (!aborted) {
-			if (!spillTrekk(hvit, Farge.HVIT)) break;
-			if (aborted) break;
-			if (!spillTrekk(svart, Farge.SVART)) break;
-		}*/
 		
 	}
 
@@ -192,7 +187,6 @@ public class Parti {
 	 * @return false hvis parti ferdig, true ellers
 	 */
 	public boolean spillTrekk(Spiller spiller, Farge farge) {
-		if (aborted) return false;
 		
 		for (Brikke b : brikkerHvit) b.finnLovligeTrekk();
 		for (Brikke b : brikkerSvart) b.finnLovligeTrekk();
@@ -205,7 +199,7 @@ public class Parti {
 		Trekk trekk = spiller.trekk();
 		leggTilPNG(trekk.toPGN());
 
-		// Spill CPU-trekk i frontend.
+		// Varsler om trekk for sanntidsoppdatering i frontend.
 		if (moveNotifier != null) {
 			moveNotifier.notifyMove(bruker, trekk.toString());
 		}

@@ -10,6 +10,7 @@ import brett.Rute;
 import spill.Trekk;
 import spill.Spiller;
 import spill.Parti;
+import com.example.sjakkwebapp.model.FlerspillerParti;
 
 @Service
 public class SpillService {
@@ -17,34 +18,22 @@ public class SpillService {
     @Autowired
     private SSEService sseService;
 
-    public static class PvPMatch {
-        public Parti parti;
-        public String hvit;
-        public String svart;
+    private final Map<String, FlerspillerParti> activePvPMatches = new ConcurrentHashMap<>();
 
-        PvPMatch(String hvit, String svart, SSEService sseService) {
-            this.hvit = hvit;
-            this.svart = svart;
-            this.parti = new Parti();
-            this.parti.setMoveNotifier(sseService);
-        }
-    }
-
-    private final Map<String, PvPMatch> activePvPMatches = new ConcurrentHashMap<>();
-
-    public PvPMatch getMatch(String bruker) {
+    public FlerspillerParti getMatch(String bruker) {
         return activePvPMatches.get(bruker);
     }
 
-    public PvPMatch createMatch(String hvit, String svart) {
-        PvPMatch match = new PvPMatch(hvit, svart, sseService);
+    public FlerspillerParti createMatch(String hvit, String svart) {
+        FlerspillerParti match = new FlerspillerParti(hvit, svart);
+        match.parti.setMoveNotifier(sseService);
         activePvPMatches.put(hvit, match);
         activePvPMatches.put(svart, match);
         return match;
     }
 
     public void endMatch(String bruker) {
-        PvPMatch match = activePvPMatches.remove(bruker);
+        FlerspillerParti match = activePvPMatches.remove(bruker);
         if (match != null) {
             if (match.parti != null) {
                 match.parti.stop();
@@ -55,13 +44,13 @@ public class SpillService {
     }
 
     public String handleMove(String bruker, String from, String to, Parti sessionParti, Spiller cpuSvart) {
-        PvPMatch match = getMatch(bruker);
+        FlerspillerParti match = getMatch(bruker);
         return (match != null)
             ? handlePvPMove(bruker, from, to, match)
             : handleCpuMove(from, to, sessionParti, cpuSvart);
     }
 
-    private String handlePvPMove(String bruker, String from, String to, PvPMatch match) {
+    private String handlePvPMove(String bruker, String from, String to, FlerspillerParti match) {
         Parti parti = match.parti;
         if (parti == null) return "No active game.";
 

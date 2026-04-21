@@ -20,6 +20,7 @@ import com.example.sjakkwebapp.service.PartiService;
 import com.example.sjakkwebapp.service.SSEService;
 import com.example.sjakkwebapp.service.AIService;
 import com.example.sjakkwebapp.service.SpillService;
+import com.example.sjakkwebapp.model.FlerspillerParti;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 import brikke.Farge;
@@ -83,9 +84,10 @@ public class SpillController {
         parti.spill(hvit, svart);
         
         // Run simulation in a separate thread so it doesn't block
+        session.setAttribute("parti", parti);
         new Thread(() -> {
             try {
-                while (true) {
+                while (!parti.isAborted()) {
                     if (!parti.spillTrekk(hvit, Farge.HVIT)) break;
 			        if (!parti.spillTrekk(svart, Farge.SVART)) break;
                 }
@@ -105,7 +107,7 @@ public class SpillController {
         
         spill.Parti sessionParti = (spill.Parti) session.getAttribute("parti");
         String bruker = (String) session.getAttribute("bruker");
-        Spiller cpuSvart = (Spiller) session.getAttribute("svart");
+        Spiller cpuSvart = (Spiller) session.getAttribute("CPU");
         
         String result = spillService.handleMove(bruker, from, to, sessionParti, cpuSvart);
         
@@ -150,11 +152,11 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        SpillService.PvPMatch match = spillService.createMatch(opponent, self); // Challenger is White
+        FlerspillerParti match = spillService.createMatch(opponent, self); // Challenger is White
         
-        // Notify both that game started
-        sseService.notifyUser(self, "game_started", "black");
+        // Notify both that game started. Challenger is white, acceptor is black.
         sseService.notifyUser(opponent, "game_started", "white");
+        sseService.notifyUser(self, "game_started", "black");
         
         return ResponseEntity.ok("Game started");
     }
@@ -172,7 +174,7 @@ public class SpillController {
         
         // Also check if there's a PvP match to stop
         String bruker = (String) session.getAttribute("bruker");
-        SpillService.PvPMatch match = spillService.getMatch(bruker);
+        FlerspillerParti match = spillService.getMatch(bruker);
         if (match != null && match.parti != null) {
             match.parti.stop();
         }
@@ -188,7 +190,7 @@ public class SpillController {
 
         String bruker = (String) session.getAttribute("bruker");
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        SpillService.PvPMatch match = spillService.getMatch(bruker);
+        FlerspillerParti match = spillService.getMatch(bruker);
         if (match != null) {
             parti = match.parti;
         }

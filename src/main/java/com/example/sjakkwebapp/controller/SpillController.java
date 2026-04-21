@@ -3,7 +3,6 @@ package com.example.sjakkwebapp.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +156,7 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        FlerspillerParti match = spillService.createMatch(opponent, self); // Challenger is White
+        FlerspillerParti match = spillService.createMatch(opponent, self);
         
         // Notify both that game started. Challenger is white, acceptor is black.
         sseService.notifyUser(opponent, "game_started", "white");
@@ -171,6 +170,8 @@ public class SpillController {
         if (!LoginUtil.erBrukerInnlogget(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
+
+        session.removeAttribute("parti");
 
         // Cancel the background simulation task if it exists
         Future<?> simulationTask = (Future<?>) session.getAttribute("simulationTask");

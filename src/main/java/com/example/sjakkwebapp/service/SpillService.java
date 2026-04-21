@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import brikke.Farge;
 import brikke.Brikke;
-import brett.Rute;
 import spill.Trekk;
 import spill.Spiller;
 import spill.Parti;
@@ -94,7 +93,7 @@ public class SpillService {
     }
 
 
-    // *** Helper methods ***
+    /* Helper methods */
 
     private Farge getCurrentTurn(Parti parti) {
         Trekk siste = parti.getSisteTrekk();

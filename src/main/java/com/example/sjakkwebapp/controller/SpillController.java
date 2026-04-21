@@ -171,6 +171,8 @@ public class SpillController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
 
+        String bruker = (String) session.getAttribute("bruker");
+        spillService.endMatch(bruker);
         session.removeAttribute("parti");
 
         // Cancel the background simulation task if it exists

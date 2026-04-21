@@ -12,11 +12,16 @@ import spill.Spiller;
 import spill.Parti;
 import com.example.sjakkwebapp.model.FlerspillerParti;
 
+import java.util.concurrent.ExecutorService;
+
 @Service
 public class SpillService {
 
     @Autowired
     private SSEService sseService;
+
+    @Autowired
+    private ExecutorService gameExecutor;
 
     private final Map<String, FlerspillerParti> activePvPMatches = new ConcurrentHashMap<>();
 
@@ -35,9 +40,6 @@ public class SpillService {
     public void endMatch(String bruker) {
         FlerspillerParti match = activePvPMatches.remove(bruker);
         if (match != null) {
-            if (match.parti != null) {
-                match.parti.stop();
-            }
             activePvPMatches.remove(match.hvit);
             activePvPMatches.remove(match.svart);
         }
@@ -81,9 +83,9 @@ public class SpillService {
         if (brikke != null && brikke.getFarge() == currentTurn) {
             executeMove(parti, brikke, to);
             if (cpuSvart != null) {
-                new Thread(() -> {
+                gameExecutor.submit(() -> {
                     parti.spillTrekk(cpuSvart, Farge.SVART);
-                }).start();
+                });
             }
             return "OK";
         }

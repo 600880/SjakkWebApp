@@ -63,10 +63,6 @@ public class AutentiseringController {
         if (bruker != null) {
             spillService.endMatch(bruker);
         }
-        spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        if (parti != null) {
-            parti.stop();
-        }
 		LoginUtil.loggUtBruker(session);
 		return "redirect:index";
 	}

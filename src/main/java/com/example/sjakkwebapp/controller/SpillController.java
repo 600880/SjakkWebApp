@@ -23,6 +23,9 @@ import com.example.sjakkwebapp.service.SpillService;
 import com.example.sjakkwebapp.model.FlerspillerParti;
 import com.example.sjakkwebapp.util.LoginUtil;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 import brikke.Farge;
 import jakarta.servlet.http.HttpSession;
 import spill.Spiller;
@@ -41,6 +44,9 @@ public class SpillController {
 
     @Autowired
     private SpillService spillService;
+
+    @Autowired
+    private ExecutorService gameExecutor;
 	
     @GetMapping("/spill")
     public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -85,19 +91,18 @@ public class SpillController {
         
         // Run simulation in a separate thread so it doesn't block
         session.setAttribute("parti", parti);
-        new Thread(() -> {
+        Future<?> simulationTask = gameExecutor.submit(() -> {
             try {
-                while (!parti.isAborted()) {
+                while (true) {
                     if (!parti.spillTrekk(hvit, Farge.HVIT)) break;
 			        if (!parti.spillTrekk(svart, Farge.SVART)) break;
                 }
-                if (!parti.isAborted()) {
-                    s.leggTilParti(bruker, "cpu@cpu.no", parti.getPNG());
-                }
+                s.leggTilParti(bruker, "cpu@cpu.no", parti.getPNG());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        session.setAttribute("simulationTask", simulationTask);
 
         return ResponseEntity.ok("Simulation started with depth " + dybde);
     }
@@ -167,16 +172,10 @@ public class SpillController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
 
-        spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        if (parti != null) {
-            parti.stop();
-        }
-        
-        // Also check if there's a PvP match to stop
-        String bruker = (String) session.getAttribute("bruker");
-        FlerspillerParti match = spillService.getMatch(bruker);
-        if (match != null && match.parti != null) {
-            match.parti.stop();
+        // Cancel the background simulation task if it exists
+        Future<?> simulationTask = (Future<?>) session.getAttribute("simulationTask");
+        if (simulationTask != null && !simulationTask.isDone()) {
+            simulationTask.cancel(true);
         }
 
         return ResponseEntity.ok("Game aborted");

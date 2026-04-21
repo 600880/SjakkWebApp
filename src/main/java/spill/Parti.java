@@ -29,15 +29,6 @@ public class Parti {
 
 	private String bruker;
 	private MoveNotifier moveNotifier;
-	private volatile boolean aborted = false;
-
-	public void stop() {
-		this.aborted = true;
-	}
-
-	public boolean isAborted() {
-		return aborted;
-	}
 
 	public void setMoveNotifier(MoveNotifier moveNotifier) {
 		this.moveNotifier = moveNotifier;
@@ -176,7 +167,6 @@ public class Parti {
 		stillingerRepetert.clear();
 		PNG = "";		
 		trekknummer = 1;
-		aborted = false;
 		
 	}
 

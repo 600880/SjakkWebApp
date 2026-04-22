@@ -12,7 +12,7 @@
 	<!-- Chess.js for move validation and board state -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 	<!-- JavaScript -->
-	<script th:src="@{/main.js}" defer></script>
+	<script th:src="@{/main.js}" type="module"></script>
 </head>
 
 <body>
@@ -20,12 +20,12 @@
 <header>
     <h1>Chess Simulator</h1>
     <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none;"></form>
-    <button onclick="document.getElementById('logoutForm').submit()">Log Out</button>
+    <button id="logoutBtn" onclick="document.getElementById('logoutForm').submit()">Log Out</button>
 </header>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('play')">Play</div>
-    <div class="tab" onclick="switchTab('archive')">Archive</div>
+    <div class="tab active" data-tab="play">Play</div>
+    <div class="tab" data-tab="archive">Archive</div>
 </div>
 
 <div id="play" class="tab-content">
@@ -45,16 +45,16 @@
                     </select>
                 </div>
                 <div class="button-group">
-                    <button id="playBtn" onclick="startInteractive()">Play vs CPU</button>
-                    <button id="simulateBtn" onclick="startSimulation()">Simulate</button>
-                    <button id="resetBtn" class="reset-btn" onclick="resetGame()" disabled>Abort</button>
+                    <button id="playBtn">Play vs CPU</button>
+                    <button id="simulateBtn">Simulate</button>
+                    <button id="resetBtn" class="reset-btn" disabled>Abort</button>
                 </div>
                 <div class="button-group">
-                    <button id="askAiBtn" onclick="askAI()">Ask AI</button>
+                    <button id="askAiBtn">Ask AI</button>
                 </div>
                 <div class="online-section">
                     <h4>Online Users</h4>
-                    <button onclick="refreshOnlineUsers()">Refresh</button>
+                    <button id="refreshUsersBtn">Refresh</button>
                     <ul id="online-users"></ul>
                 </div>
             </div>
@@ -84,7 +84,7 @@
         <!-- Game Replay View -->
         <div id="replayView" style="display:none;">
             <div class="replay-header">
-                <button onclick="backToGameList()">← Back</button>
+                <button id="backToArchiveBtn">← Back</button>
                 <h3><span id="replayPlayers"></span></h3>
             </div>
             
@@ -93,10 +93,10 @@
                 <div class="board-container">
                     <div id="replayBoard"></div>
                     <div class="control-buttons">
-                        <button class="control-btn" onclick="firstMove()">⏮</button>
-                        <button class="control-btn" onclick="prevMove()">◀</button>
-                        <button class="control-btn" onclick="nextMove()">▶</button>
-                        <button class="control-btn" onclick="lastMove()">⏭</button>
+                        <button id="firstMoveBtn" class="control-btn">⏮</button>
+                        <button id="prevMoveBtn" class="control-btn">◀</button>
+                        <button id="nextMoveBtn" class="control-btn">▶</button>
+                        <button id="lastMoveBtn" class="control-btn">⏭</button>
                     </div>
                     <div class="move-info">Move: <span id="currentMoveNum">0/0</span></div>
                 </div>

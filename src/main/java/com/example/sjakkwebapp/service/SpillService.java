@@ -28,12 +28,13 @@ public class SpillService {
         return activePvPMatches.get(bruker);
     }
 
-    public FlerspillerParti createMatch(String hvit, String svart) {
+    public Parti createMatch(String hvit, String svart) {
         FlerspillerParti match = new FlerspillerParti(hvit, svart);
-        match.parti.setMoveNotifier(sseService);
         activePvPMatches.put(hvit, match);
         activePvPMatches.put(svart, match);
-        return match;
+        Parti parti = match.parti;
+        parti.setMoveNotifier(sseService);
+        return parti;
     }
 
     public void endMatch(String bruker) {

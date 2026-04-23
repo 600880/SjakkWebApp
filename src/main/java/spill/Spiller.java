@@ -22,14 +22,12 @@ public class Spiller {
 	private final Random rand = new Random();
 	private final int[][] indeksTabell;
 	private int evaluering;
-	private boolean CPU;
 	
 	
-	public Spiller(String navn, Farge farge, int dybde, boolean CPU, Parti parti) {
+	public Spiller(String navn, Farge farge, int dybde, Parti parti) {
 		this.navn = navn;
 		this.farge = farge;
 		this.dybde = dybde;
-		this.CPU = CPU;
 		this.parti = parti;
 		spillerBrikker = farge == Farge.HVIT ? parti.getBrikkerHvit() : parti.getBrikkerSvart();
 		indeksTabell = new int[2][spillerBrikker.size()];
@@ -137,10 +135,6 @@ public class Spiller {
 	
 	public void setDybde(int dybde) {
 		this.dybde = dybde;
-	}
-	
-	public void setCPU(boolean CPU) {
-		this.CPU = CPU;
 	}
 	
 	@Override

@@ -19,7 +19,6 @@ import com.example.sjakkwebapp.service.PartiService;
 import com.example.sjakkwebapp.service.SSEService;
 import com.example.sjakkwebapp.service.AIService;
 import com.example.sjakkwebapp.service.SpillService;
-import com.example.sjakkwebapp.model.FlerspillerParti;
 import com.example.sjakkwebapp.util.LoginUtil;
 
 import java.util.concurrent.ExecutorService;
@@ -60,8 +59,8 @@ public class SpillController {
         parti.setMoveNotifier(sseService);
 
         // Interactive: Human is White, CPU is Black
-        Spiller hvit = new Spiller(bruker, Farge.HVIT, dybde, false, parti);
-        Spiller svart = new Spiller("cpu@cpu.no", Farge.SVART, dybde, true, parti);
+        Spiller hvit = new Spiller(bruker, Farge.HVIT, dybde, parti);
+        Spiller svart = new Spiller("cpu@cpu.no", Farge.SVART, dybde, parti);
         parti.spill(hvit, svart);
         
         // Game state is now in session attributes for move handling
@@ -84,8 +83,8 @@ public class SpillController {
         parti.setMoveNotifier(sseService);
 
         // Simulation: Both are CPU
-        Spiller hvit = new Spiller("CPU-White", Farge.HVIT, dybde, true, parti);
-        Spiller svart = new Spiller("CPU-Black", Farge.SVART, dybde, true, parti);
+        Spiller hvit = new Spiller("CPU-White", Farge.HVIT, dybde, parti);
+        Spiller svart = new Spiller("CPU-Black", Farge.SVART, dybde, parti);
         parti.spill(hvit, svart);
         
         // Run simulation in a separate thread so it doesn't block
@@ -156,7 +155,8 @@ public class SpillController {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        FlerspillerParti match = spillService.createMatch(opponent, self);
+        spill.Parti parti = spillService.createMatch(opponent, self);
+        session.setAttribute("parti", parti);
         
         // Notify both that game started. Challenger is white, acceptor is black.
         sseService.notifyUser(opponent, "game_started", "white");
@@ -190,13 +190,7 @@ public class SpillController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         }
 
-        String bruker = (String) session.getAttribute("bruker");
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
-        FlerspillerParti match = spillService.getMatch(bruker);
-        if (match != null) {
-            parti = match.parti;
-        }
-
         if (parti == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
         }

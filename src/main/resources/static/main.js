@@ -11,6 +11,7 @@ window.addEventListener('load', () => {
     if (document.getElementById('board')) {
         initPlayBoard();
         initSSE();
+        refreshOnlineUsers();
         updateUIState(false);
         setupEventListeners();
     }

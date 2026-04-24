@@ -43,6 +43,31 @@ export function displayOutput(msg, isError = false) {
     const output = document.getElementById('output');
     if (output) {
         output.innerText = (isError ? 'Error: ' : '') + msg;
+        output.style.width = "500px"; // Ensure width matches board
+    }
+}
+
+export function appendChatMessage(msg) {
+    const container = document.getElementById('chat-messages');
+    if (container) {
+        const div = document.createElement('div');
+        div.style.marginBottom = '5px';
+        div.innerText = msg;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+export function toggleChat(enable) {
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendChatBtn');
+    if (chatInput) chatInput.disabled = !enable;
+    if (sendBtn) sendBtn.disabled = !enable;
+    
+    if (!enable) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) chatMessages.innerHTML = '';
+        if (chatInput) chatInput.value = '';
     }
 }
 

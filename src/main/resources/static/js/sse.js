@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { refreshOnlineUsers, handleChallenge, startPvPGame } from './game.js';
+import { appendChatMessage } from './ui.js';
 
 export function initSSE() {
     state.evtSource = new EventSource('/moves/stream');
@@ -33,5 +34,9 @@ export function initSSE() {
 
     state.evtSource.addEventListener('game_started', (event) => {
         startPvPGame(event.data);
+    });
+
+    state.evtSource.addEventListener('chat', (event) => {
+        appendChatMessage(event.data);
     });
 }

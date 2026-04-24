@@ -1,7 +1,7 @@
 import { initPlayBoard } from './js/board.js';
 import { initSSE } from './js/sse.js';
 import { updateUIState, switchTab } from './js/ui.js';
-import { startInteractive, startSimulation, resetGame, askAI, refreshOnlineUsers } from './js/game.js';
+import { startInteractive, startSimulation, resetGame, askAI, refreshOnlineUsers, handleChatSend } from './js/game.js';
 import { loadArchive, backToGameList, firstMove, prevMove, nextMove, lastMove } from './js/archive.js';
 
 /* ===== INITIALIZATION ===== */
@@ -36,6 +36,12 @@ function setupEventListeners() {
     
     // Online users
     document.getElementById('refreshUsersBtn')?.addEventListener('click', refreshOnlineUsers);
+
+    // Chat
+    document.getElementById('sendChatBtn')?.addEventListener('click', handleChatSend);
+    document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleChatSend();
+    });
 
     // Archive / Replay
     document.getElementById('backToArchiveBtn')?.addEventListener('click', backToGameList);

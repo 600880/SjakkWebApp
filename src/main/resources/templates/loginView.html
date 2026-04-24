@@ -31,7 +31,10 @@
 <div id="play" class="tab-content">
     <div class="play-section">
         <div class="game-layout">
-            <div id="board"></div>
+            <div class="board-column" style="display: flex; flex-direction: column; gap: 20px;">
+                <div id="board"></div>
+                <div id="output">Choose a mode to start</div>
+            </div>
             <div class="controls-panel">
                 <div class="control-group">
                     <label for="cpuLevel">CPU Level:</label>
@@ -57,9 +60,18 @@
                     <button id="refreshUsersBtn">Refresh</button>
                     <ul id="online-users"></ul>
                 </div>
+                <div id="chat-container" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                    <h4>Chat</h4>
+                    <div id="chat-messages" style="height: 150px; overflow-y: auto; background: #f9f9f9; padding: 5px; margin-bottom: 10px; border: 1px solid #ddd; font-size: 14px;"></div>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <input type="text" id="chatInput" placeholder="Type a message..." style="flex: 1; margin: 0; padding: 8px;" disabled>
+                        <button id="sendChatBtn" style="width: 35px; height: 35px; min-width: 35px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background-color: #2c6e49; border-radius: 4px; border: none; color: white; cursor: pointer;" disabled>
+                            <span style="transform: rotate(0deg); font-size: 18px;">➤</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="output">Choose a mode to start</div>
     </div>
 </div>
 

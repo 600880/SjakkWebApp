@@ -63,3 +63,12 @@ export function acceptChallengeRequest(challenger) {
         body: formData
     });
 }
+
+export function sendChatMessage(message) {
+    const formData = new URLSearchParams();
+    formData.append('melding', message);
+    return fetch('/chat', {
+        method: 'POST',
+        body: formData
+    });
+}

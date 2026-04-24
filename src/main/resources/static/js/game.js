@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { fetchText, fetchJson, abortGameRequest, acceptChallengeRequest, sendChallengeRequest } from './api.js';
-import { updateUIState, displayOutput, showChallengeNotification } from './ui.js';
+import { updateUIState, displayOutput, showChallengeNotification, toggleChat, appendChatMessage } from './ui.js';
 import { initPlayBoard, startPvPBoard } from './board.js';
 
 export function getCPULevel() {
@@ -48,6 +48,7 @@ export function resetGame() {
     abortGameRequest()
         .then(() => {
             updateUIState(false);
+            toggleChat(false);
             state.game.reset();
             if (state.board) state.board.position('start');
             displayOutput('Choose a mode to start');
@@ -109,7 +110,25 @@ export function handleChallenge(challenger) {
 
 export function startPvPGame(orientation) {
     updateUIState(true);
+    toggleChat(true);
     state.game.reset();
     startPvPBoard(orientation);
     displayOutput("PvP Game started! You are " + orientation);
+}
+
+export function handleChatSend() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (msg) {
+        import('./api.js').then(api => {
+            api.sendChatMessage(msg).then(res => {
+                if (res.ok) {
+                    appendChatMessage("You: " + msg);
+                    input.value = '';
+                } else {
+                    alert("Failed to send message.");
+                }
+            });
+        });
+    }
 }

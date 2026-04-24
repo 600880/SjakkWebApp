@@ -45,6 +45,12 @@ public class SpillService {
         }
     }
 
+    public String getOpponent(String bruker) {
+        FlerspillerParti match = activePvPMatches.get(bruker);
+        if (match == null) return null;
+        return bruker.equals(match.hvit) ? match.svart : match.hvit;
+    }
+
     public String handleMove(String bruker, String from, String to, Parti sessionParti, Spiller cpuSvart) {
         FlerspillerParti match = getMatch(bruker);
         return (match != null)

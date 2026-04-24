@@ -184,6 +184,20 @@ public class SpillController {
         return ResponseEntity.ok("Game aborted");
     }
 
+    @PostMapping("/chat")
+    public ResponseEntity<String> sendChat(@RequestParam String melding, HttpSession session) {
+        String self = (String) session.getAttribute("bruker");
+        if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
+        String opponent = spillService.getOpponent(self);
+        if (opponent != null) {
+            sseService.notifyUser(opponent, "chat", self + ": " + melding);
+            return ResponseEntity.ok("Message sent");
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active PvP game");
+    }
+
     @PostMapping("/ask-ai")
     public ResponseEntity<String> askAI(HttpSession session) {
         if (!LoginUtil.erBrukerInnlogget(session)) {

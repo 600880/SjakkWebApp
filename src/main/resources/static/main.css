@@ -256,6 +256,7 @@ header button:hover {
     border: 3px solid #2c6e49;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    touch-action: none;
 }
 
 #output {
@@ -274,6 +275,14 @@ header button:hover {
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
 }
 
+.board-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 100%;
+    align-items: center;
+}
+
 /* Add responsive adjustments */
 @media (max-width: 950px) {
     .game-layout {
@@ -281,12 +290,7 @@ header button:hover {
         align-items: center;
     }
     
-    #board {
-        width: 100%;
-        max-width: 500px;
-    }
-    
-    .controls-panel {
+    #board, #output, .controls-panel, .board-column {
         width: 100%;
         max-width: 500px;
     }
@@ -394,6 +398,7 @@ table button {
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    touch-action: none;
 }
 
 .control-buttons {

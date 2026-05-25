@@ -133,6 +133,10 @@ public class Spiller {
 		return evaluering;
 	}
 	
+	public Farge getFarge() {
+		return farge;
+	}
+	
 	public void setDybde(int dybde) {
 		this.dybde = dybde;
 	}

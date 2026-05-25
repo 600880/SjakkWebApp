@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpSession;
 
@@ -42,6 +44,21 @@ public class PartiController {
         return s.finnPartiById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    @PostMapping("/saveGame")
+    public ResponseEntity<String> saveGame(@RequestParam String hvit, @RequestParam String svart, @RequestParam String pgn, HttpSession session) {
+        
+        if (!LoginUtil.erBrukerInnlogget(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        }
+        
+        try {
+            s.leggTilParti(hvit, svart, pgn);
+            return ResponseEntity.ok("Game saved successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save game: " + e.getMessage());
+        }
     }
 
 }

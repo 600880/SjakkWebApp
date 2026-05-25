@@ -47,7 +47,7 @@ public class SpillController {
     private ExecutorService gameExecutor;
 	
     @GetMapping("/spill")
-    public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public ResponseEntity<String> sjakk(@RequestParam(defaultValue = "3") int dybde, @RequestParam(defaultValue = "white") String color, HttpSession session) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
         if (!LoginUtil.erBrukerInnlogget(session)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
@@ -58,16 +58,28 @@ public class SpillController {
         parti.setBruker(bruker);
         parti.setMoveNotifier(sseService);
 
-        // Interactive: Human is White, CPU is Black
-        Spiller hvit = new Spiller(bruker, Farge.HVIT, dybde, parti);
-        Spiller svart = new Spiller("cpu@cpu.no", Farge.SVART, dybde, parti);
-        parti.spill(hvit, svart);
-        
-        // Game state is now in session attributes for move handling
-        session.setAttribute("parti", parti);
-        session.setAttribute("CPU", svart);
+        boolean isWhite = "white".equalsIgnoreCase(color);
+        Spiller hvit, svart;
 
-        return ResponseEntity.ok("Interactive game initialized with depth " + dybde);
+        if (isWhite) {
+            hvit = new Spiller(bruker, Farge.HVIT, dybde, parti);
+            svart = new Spiller("cpu@cpu.no", Farge.SVART, dybde, parti);
+            session.setAttribute("CPU", svart);
+        } else {
+            hvit = new Spiller("cpu@cpu.no", Farge.HVIT, dybde, parti);
+            svart = new Spiller(bruker, Farge.SVART, dybde, parti);
+            session.setAttribute("CPU", hvit);
+            
+            // If CPU is white, it must make the first move
+            gameExecutor.submit(() -> {
+                parti.spillTrekk(hvit, Farge.HVIT);
+            });
+        }
+        
+        parti.spill(hvit, svart);
+        session.setAttribute("parti", parti);
+
+        return ResponseEntity.ok("Interactive game initialized as " + color + " with depth " + dybde);
     }
 
     @GetMapping("/simulate")
@@ -110,9 +122,9 @@ public class SpillController {
         
         spill.Parti sessionParti = (spill.Parti) session.getAttribute("parti");
         String bruker = (String) session.getAttribute("bruker");
-        Spiller cpuSvart = (Spiller) session.getAttribute("CPU");
+        Spiller cpu = (Spiller) session.getAttribute("CPU");
         
-        String result = spillService.handleMove(bruker, from, to, sessionParti, cpuSvart);
+        String result = spillService.handleMove(bruker, from, to, sessionParti, cpu);
         
         if ("OK".equals(result)) {
             return ResponseEntity.ok("Move accepted");
@@ -139,28 +151,35 @@ public class SpillController {
     }
 
     @PostMapping("/challenge")
-    public ResponseEntity<String> challengeUser(@RequestParam String opponent, HttpSession session) {
+    public ResponseEntity<String> challengeUser(@RequestParam String opponent, @RequestParam(defaultValue = "white") String color, HttpSession session) {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
         if (!sseService.isUserOnline(opponent)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Opponent not online");
         
-        sseService.notifyUser(opponent, "challenge", self);
+        // Send challenge as "challenger_name:challenger_color"
+        sseService.notifyUser(opponent, "challenge", self + ":" + color);
         
         return ResponseEntity.ok("Challenge sent");
     }
 
     @PostMapping("/challenge/accept")
-    public ResponseEntity<String> acceptChallenge(@RequestParam String opponent, HttpSession session) {
+    public ResponseEntity<String> acceptChallenge(@RequestParam String opponent, @RequestParam(defaultValue = "white") String challengerColor, HttpSession session) {
         String self = (String) session.getAttribute("bruker");
         if (self == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         
-        spill.Parti parti = spillService.createMatch(opponent, self);
-        session.setAttribute("parti", parti);
+        spill.Parti parti;
+        if ("white".equalsIgnoreCase(challengerColor)) {
+            parti = spillService.createMatch(opponent, self);
+            sseService.notifyUser(opponent, "game_started", "white");
+            sseService.notifyUser(self, "game_started", "black");
+        } else {
+            parti = spillService.createMatch(self, opponent);
+            sseService.notifyUser(opponent, "game_started", "black");
+            sseService.notifyUser(self, "game_started", "white");
+        }
         
-        // Notify both that game started. Challenger is white, acceptor is black.
-        sseService.notifyUser(opponent, "game_started", "white");
-        sseService.notifyUser(self, "game_started", "black");
+        session.setAttribute("parti", parti);
         
         return ResponseEntity.ok("Game started");
     }
@@ -205,6 +224,16 @@ public class SpillController {
         }
 
         spill.Parti parti = (spill.Parti) session.getAttribute("parti");
+        String bruker = (String) session.getAttribute("bruker");
+
+        // If no game in session, check if there's an active PvP game for this user
+        if (parti == null && bruker != null) {
+            com.example.sjakkwebapp.model.FlerspillerParti match = spillService.getMatch(bruker);
+            if (match != null) {
+                parti = match.parti;
+            }
+        }
+
         if (parti == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No active game.");
         }

@@ -206,6 +206,29 @@ header button:hover {
     margin-bottom: 20px;
 }
 
+.captured-pieces-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end; /* Fill towards the left */
+    flex-wrap: nowrap;
+    overflow: hidden; /* Remove drag bar */
+    margin-left: auto; /* Push next to clock */
+    margin-right: 15px; /* Space between pieces and clock */
+    max-width: 280px;
+    align-items: center;
+}
+
+.captured-piece {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    margin-left: -6px; /* Overlap pieces */
+}
+
+.captured-piece:first-child {
+    margin-left: 0;
+}
+
 .controls-panel {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -228,6 +251,111 @@ header button:hover {
     font-size: 14px;
     color: #555;
     white-space: nowrap;
+}
+
+.timer-settings {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.color-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+}
+
+.color-toggle:hover {
+    transform: scale(1.1);
+    background: none;
+}
+
+.color-toggle .color-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.color-toggle.white .color-circle {
+    background-color: white;
+    border: 2px solid black;
+}
+
+.color-toggle.black .color-circle {
+    background-color: #333;
+    border: 2px solid #999;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.level-bar {
+    display: flex;
+    background-color: #eee;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 160px;
+    height: 34px;
+}
+
+.level-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.15s;
+    border-right: 1px solid #ddd;
+    user-select: none;
+}
+
+.level-btn:last-child {
+    border-right: none;
+}
+
+.level-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.level-btn.active {
+    background-color: #2c6e49;
+    color: white;
+}
+
+.level-bar.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.setting-item label {
+    font-size: 12px;
 }
 
 .control-group select {
@@ -278,9 +406,36 @@ header button:hover {
 .board-column {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
     max-width: 100%;
     align-items: center;
+}
+
+.timer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 500px;
+    padding: 8px 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.timer-container.active {
+    background-color: #2c6e49;
+    color: white;
+    border-color: #2c6e49;
+}
+
+.timer {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+}
+
+.player-name {
+    font-size: 14px;
 }
 
 /* Add responsive adjustments */
@@ -290,7 +445,7 @@ header button:hover {
         align-items: center;
     }
     
-    #board, #output, .controls-panel, .board-column {
+    #board, #output, .controls-panel, .board-column, .timer-container {
         width: 100%;
         max-width: 500px;
     }
@@ -428,7 +583,7 @@ table button {
 }
 
 #pgnDisplay {
-    flex: 1;
+    height: 516px; /* Fixed height matching board area */
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 16px;

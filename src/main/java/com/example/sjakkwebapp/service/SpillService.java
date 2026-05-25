@@ -51,11 +51,14 @@ public class SpillService {
         return bruker.equals(match.hvit) ? match.svart : match.hvit;
     }
 
-    public String handleMove(String bruker, String from, String to, Parti sessionParti, Spiller cpuSvart) {
+    public String handleMove(String bruker, String from, String to, Parti sessionParti, Spiller cpu) {
         FlerspillerParti match = getMatch(bruker);
-        return (match != null)
-            ? handlePvPMove(bruker, from, to, match)
-            : handleCpuMove(from, to, sessionParti, cpuSvart);
+        if (match != null) {
+            return handlePvPMove(bruker, from, to, match);
+        } else {
+            Farge cpuColor = (cpu != null) ? cpu.getFarge() : Farge.SVART;
+            return handleCpuMove(from, to, sessionParti, cpu, cpuColor);
+        }
     }
 
     private String handlePvPMove(String bruker, String from, String to, FlerspillerParti match) {
@@ -79,18 +82,20 @@ public class SpillService {
         return "Invalid move";
     }
 
-    private String handleCpuMove(String from, String to, Parti parti, Spiller cpuSvart) {
+    private String handleCpuMove(String from, String to, Parti parti, Spiller cpu, Farge cpuColor) {
         if (parti == null) return "No active game.";
 
         Farge currentTurn = getCurrentTurn(parti);
-        if (currentTurn != Farge.HVIT) return "Not your turn (CPU's turn)";
+        Farge userColor = (cpuColor == Farge.HVIT) ? Farge.SVART : Farge.HVIT;
+
+        if (currentTurn != userColor) return "Not your turn (CPU's turn)";
 
         Brikke brikke = getBrikke(parti, from);
         if (brikke != null && brikke.getFarge() == currentTurn) {
             executeMove(parti, brikke, to);
-            if (cpuSvart != null) {
+            if (cpu != null) {
                 gameExecutor.submit(() -> {
-                    parti.spillTrekk(cpuSvart, Farge.SVART);
+                    parti.spillTrekk(cpu, cpuColor);
                 });
             }
             return "OK";

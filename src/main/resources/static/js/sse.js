@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { refreshOnlineUsers, handleChallenge, startPvPGame } from './game.js';
+import { refreshOnlineUsers, handleChallenge, startPvPGame, checkGameOver, applyIncrement } from './game.js';
 import { appendChatMessage } from './ui.js';
 
 export function initSSE() {
@@ -24,6 +24,9 @@ export function initSSE() {
             } else {
                 state.board.move(moveStr);
                 state.game.move(moveStr, { sloppy: true });
+            }
+            if (!checkGameOver()) {
+                applyIncrement();
             }
         }
     });

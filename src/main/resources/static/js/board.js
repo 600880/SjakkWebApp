@@ -1,10 +1,12 @@
 import { state } from './state.js';
 import { sendMoveToServer } from './api.js';
+import { checkGameOver, applyIncrement } from './game.js';
 
 export function initPlayBoard(isDraggable = true) {
     const boardElement = document.getElementById('board');
     if (!boardElement) return;
 
+    state.userColor = 'w'; // Default for PvE
     state.board = Chessboard('board', {
         draggable: isDraggable,
         position: 'start',
@@ -35,6 +37,9 @@ function onDrop(source, target) {
     if (move === null) return 'snapback';
 
     sendMoveToServer(source, target, state.game, state.board);
+    if (!checkGameOver()) {
+        applyIncrement();
+    }
 }
 
 export function startPvPBoard(orientation) {
@@ -42,6 +47,7 @@ export function startPvPBoard(orientation) {
         state.board.destroy();
     }
     
+    state.userColor = orientation === 'white' ? 'w' : 'b';
     state.board = Chessboard('board', {
         draggable: true,
         position: 'start',

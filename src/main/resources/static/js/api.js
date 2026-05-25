@@ -45,18 +45,20 @@ export function abortGameRequest() {
     return fetch('/abort', { method: 'POST' });
 }
 
-export function sendChallengeRequest(user) {
+export function sendChallengeRequest(user, color = 'white') {
     const formData = new URLSearchParams();
     formData.append('opponent', user);
+    formData.append('color', color);
     return fetch('/challenge', {
         method: 'POST',
         body: formData
     }).then(res => res.text());
 }
 
-export function acceptChallengeRequest(challenger) {
+export function acceptChallengeRequest(challenger, challengerColor = 'white') {
     const formData = new URLSearchParams();
     formData.append('opponent', challenger);
+    formData.append('challengerColor', challengerColor);
     
     return fetch('/challenge/accept', {
         method: 'POST',
@@ -68,6 +70,18 @@ export function sendChatMessage(message) {
     const formData = new URLSearchParams();
     formData.append('melding', message);
     return fetch('/chat', {
+        method: 'POST',
+        body: formData
+    });
+}
+
+export function saveGame(hvit, svart, pgn) {
+    const formData = new URLSearchParams();
+    formData.append('hvit', hvit);
+    formData.append('svart', svart);
+    formData.append('pgn', pgn);
+
+    return fetch('/saveGame', {
         method: 'POST',
         body: formData
     });

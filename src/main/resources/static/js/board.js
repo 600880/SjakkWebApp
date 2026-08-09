@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { sendMoveToServer } from './api.js';
 import { checkGameOver, applyIncrement } from './game.js';
+import { playMoveSound } from './effects.js';
 
 export function initPlayBoard(isDraggable = true) {
     const boardElement = document.getElementById('board');
@@ -35,6 +36,8 @@ function onDrop(source, target) {
     });
 
     if (move === null) return 'snapback';
+
+    playMoveSound(!!move.captured);
 
     sendMoveToServer(source, target, state.game, state.board);
     if (!checkGameOver()) {

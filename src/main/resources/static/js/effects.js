@@ -172,31 +172,64 @@ export function playCheckAlarm() {
     
     const audioCtx = new AudioContext();
     
-    function createSiren(frequency, startTime) {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
+    // Play a smooth, warm warning chime instead of a harsh alarm
+    function playNote(freq, startTime, duration = 0.18, volume = 0.08) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-        oscillator.type = 'sawtooth';
-        oscillator.frequency.setValueAtTime(frequency, startTime);
-        
-        // Siren effect: oscillate frequency
-        oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.5, startTime + 0.4);
-        oscillator.frequency.exponentialRampToValueAtTime(frequency, startTime + 0.8);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startTime);
 
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, startTime + 0.1);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.8);
+        // Smooth attack and quick decay
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-        oscillator.start(startTime);
-        oscillator.stop(startTime + 0.8);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
     }
 
-    // Play a sequence of tones for an alarm feel
-    for (let i = 0; i < 3; i++) {
-        createSiren(400, audioCtx.currentTime + (i * 0.9));
-        createSiren(300, audioCtx.currentTime + (i * 0.9) + 0.2);
+    const now = audioCtx.currentTime;
+    // Play two brief, subtle alert tones (E5 -> B4)
+    playNote(659.25, now, 0.18, 0.07);
+    playNote(493.88, now + 0.12, 0.22, 0.06);
+}
+
+export function playMoveSound(isCapture = false) {
+    if (!state.specialEffectsEnabled) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    
+    const audioCtx = new AudioContext();
+    const now = audioCtx.currentTime;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    if (isCapture) {
+        // Slightly punchier wooden click for piece captures
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.05);
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    } else {
+        // Soft, subtle wooden thud for standard piece moves
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.04);
+
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
     }
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.06);
 }

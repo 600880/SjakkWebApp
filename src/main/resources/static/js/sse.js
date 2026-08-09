@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { refreshOnlineUsers, handleChallenge, startPvPGame, checkGameOver, applyIncrement } from './game.js';
 import { appendChatMessage } from './ui.js';
+import { playMoveSound } from './effects.js';
 
 export function initSSE() {
     state.evtSource = new EventSource('/moves/stream');
@@ -18,12 +19,16 @@ export function initSSE() {
         if (state.board) {
             const moveStr = event.data;
             const parts = moveStr.split('-');
+            let move = null;
             if (parts.length === 2) {
-                state.game.move({ from: parts[0], to: parts[1], promotion: 'q' });
+                move = state.game.move({ from: parts[0], to: parts[1], promotion: 'q' });
                 state.board.position(state.game.fen());
             } else {
                 state.board.move(moveStr);
-                state.game.move(moveStr, { sloppy: true });
+                move = state.game.move(moveStr, { sloppy: true });
+            }
+            if (move) {
+                playMoveSound(!!move.captured);
             }
             if (!checkGameOver()) {
                 applyIncrement();
